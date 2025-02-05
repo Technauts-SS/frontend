@@ -54,13 +54,6 @@ To set up the project locally:
    ```
 5. **Open your browser** and go to `http://localhost:3000` to see the application in action.
 
-## 👥 Contributing
-
-We welcome contributions! If you’d like to help improve the platform, please fork the repository and submit a pull request. Contributions can include:
-- Enhancing the UI
-- Improving accessibility features
-- Fixing bugs or adding new components
-
 ## 📄 License
 
 This project is licensed under the MIT License, allowing for both personal and commercial use. See the [LICENSE](./LICENSE) file for details.
