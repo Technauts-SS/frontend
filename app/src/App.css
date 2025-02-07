@@ -1,0 +1,103 @@
+
+header {
+    background-color: #fff;
+    padding: 15px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .logo {
+    display: flex;
+    justify-content: flex-start; 
+  }
+  
+  .nav {
+    display: flex;
+    gap: 20px;
+    justify-content: flex-end; 
+  }
+  
+  
+  .flexsb {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .logo img {
+    height: 40px;
+  }
+  
+  
+  .nav a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+  
+  .nav a:hover {
+    color: #0073e6;
+  }
+  
+  .toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .icon {
+    font-size: 40px;
+    color: #333;
+  }
+  
+
+  @media (max-width: 768px) {
+    .nav {
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+      position: absolute;
+      top: 70px;
+      right: 20px;
+      background-color: #fff;
+      box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      border-radius: 8px;
+      width: 200px;
+    }
+  
+    .nav a {
+      font-size: 16px;
+      text-align: right;
+    }
+  
+    .toggle {
+      display: block;
+    }
+  
+    .nav.showMenu {
+      display: flex;
+    }
+  
+    .hideMenu {
+      display: none;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .logo img {
+      height: 30px;
+    }
+  }
+  
