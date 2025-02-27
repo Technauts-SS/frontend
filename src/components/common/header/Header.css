@@ -1,0 +1,163 @@
+/* 📌 Заголовок */
+.header {
+  width: 100%;
+  height: 70px;
+  position: fixed;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  box-sizing: border-box;
+  padding: 10px 10px;
+  top: 0;
+  left: 0;
+}
+
+/* Темний режим */
+.theme-dark .header {
+  background-color: #222;
+  color: white;
+}
+
+/* 📌 Логотип */
+.logo {
+  font-family: "Poppins", sans-serif;
+  font-size: 25px;
+  font-weight: bold;
+  transition: transform 0.2s ease-in-out;
+}
+
+/* "3" завжди зелена */
+.logo-green {
+  color: #2a9d8f;
+  font-weight: bold;
+}
+
+/* "boration" чорний у світлій темі */
+.logo-black {
+  color: black;
+}
+
+/* "boration" білий у темній темі */
+.theme-dark .logo-black {
+  color: white;
+}
+
+/* 📌 Навігація */
+nav {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Посилання */
+nav a {
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.theme-dark nav a {
+  color: white;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+/* 📌 Тумблер темної теми */
+.theme-switch {
+  width: 40px;
+  height: 20px;
+  background: linear-gradient(45deg, #ccc, #eee);
+  border-radius: 20px;
+  position: relative;
+  cursor: pointer;
+  transition: 0.3s;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.switch-circle {
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  transform: translateY(-50%);
+  transition: 0.3s;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Темний режим */
+.dark-mode {
+  background: linear-gradient(45deg, #444, #222);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+}
+
+.dark-mode .switch-circle {
+  left: 22px;
+  background: #f1c40f;
+  box-shadow: 0 0 6px rgba(255, 200, 0, 0.7);
+}
+
+/* 📌 Бургер-меню */
+.burger-icon {
+  display: none;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+/* 📌 Навігаційне меню (за замовчуванням відкрите) */
+.nav-menu {
+  display: flex;
+  gap: 1rem;
+}
+
+/* 📱 Адаптація для мобільних */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px 15px;
+  }
+
+  .burger-icon {
+    display: block;
+  }
+
+  .nav-menu {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: #222;
+    width: 200px;
+    flex-direction: column;
+    align-items: center;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    padding: 10px 0;
+    box-shadow: -4px 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .nav-menu.open {
+    transform: translateX(0);
+  }
+
+  .nav-menu a {
+    color: white;
+    padding: 10px;
+    text-decoration: none;
+    font-size: 18px;
+  }
+
+  .nav-menu a:hover {
+    background: rgba(255, 255, 255, 0.2);
+    width: 100%;
+    text-align: center;
+  }
+}

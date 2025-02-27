@@ -1,0 +1,72 @@
+.container#createFundraiser { 
+  background-color: #f5f1ee;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 500px;
+  margin: auto;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+  font-size: 24px;
+  margin-bottom: 15px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input, .textarea, .file-input, .select-category {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #bfdfff;
+  background-color: #fff;
+  font-size: 16px;
+}
+
+.textarea {
+  min-height: 80px;
+  resize: none;
+}
+
+.file-input {
+  cursor: pointer;
+}
+
+.select-category {
+  /* Стилі для випадаючого списку */
+  background-color: #fff;
+  border: 1px solid #bfdfff;
+}
+
+.button {
+  background-color: #f87154;
+  color: #fff;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.button:hover {
+  background-color: #d95a40;
+}
+
+.success {
+  color: #c2e7b1;
+  text-align: center;
+  font-weight: bold;
+}
+
+.error {
+  color: #f87154;
+  text-align: center;
+  font-weight: bold;
+}

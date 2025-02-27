@@ -1,0 +1,23 @@
+.fundraising-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 90vw; /* Дозволяє адаптивне розширення */
+    margin: 0 auto; /* Центрує сітку */
+}
+.fundraising-card-link {
+    text-decoration: none;
+    color: inherit;
+}
+.fundraising-header h2 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+}
+
+.theme-dark .fundraising-header h2{
+    color: #fff;
+}
+  
