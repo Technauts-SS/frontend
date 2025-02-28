@@ -1,72 +1,289 @@
-.container#createFundraiser { 
-  background-color: #f5f1ee;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 500px;
-  margin: auto;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+/* Main container styles */
+.container#createFundraiser {
+  background-color: #fdf9f6;
+  background-image: linear-gradient(to bottom right, #fdf9f6, #f2e8df);
+  padding: 32px;
+  border-radius: 18px;
+  max-width: 600px;
+  margin: 40px auto;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1), 0 6px 12px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
 }
 
+.container#createFundraiser::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(to right, #ff7043, #ffa07a);
+}
+
+/* Heading styles */
 h2 {
   text-align: center;
-  color: #333;
-  font-size: 24px;
-  margin-bottom: 15px;
+  color: #222;
+  font-size: 30px;
+  margin-bottom: 28px;
+  font-weight: 700;
+  position: relative;
+  padding-bottom: 12px;
 }
 
+h2::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 4px;
+  background-color: #ff7043;
+  border-radius: 3px;
+}
+
+/* Form styles */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 18px;
 }
 
-.input, .textarea, .file-input, .select-category {
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #bfdfff;
-  background-color: #fff;
+/* Form group styles */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-label {
+  font-weight: 600;
+  color: #444;
   font-size: 16px;
 }
 
+/* Common input styles */
+.input, .textarea, .select, select {
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid #cfd8dc;
+  background-color: #fff;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.03);
+}
+
+.input:focus, .textarea:focus, .select:focus, select:focus {
+  outline: none;
+  border-color: #ff7043;
+  box-shadow: 0 0 0 4px rgba(255, 112, 67, 0.2);
+}
+
+/* Specific input styles */
 .textarea {
-  min-height: 80px;
-  resize: none;
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Improved File Input Styling */
+.file-input-container {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.file-input-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #444;
+  font-size: 16px;
+}
+
+.file-input-wrapper {
+  position: relative;
+  border: 2px dashed #ff7043;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  background-color: rgba(255, 112, 67, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.file-input-wrapper:hover {
+  background-color: rgba(255, 112, 67, 0.1);
 }
 
 .file-input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
   cursor: pointer;
 }
 
-.select-category {
-  /* Стилі для випадаючого списку */
-  background-color: #fff;
-  border: 1px solid #bfdfff;
+.file-input-icon {
+  display: block;
+  margin: 0 auto 10px;
+  font-size: 28px;
+  color: #ff7043;
 }
 
-.button {
-  background-color: #f87154;
-  color: #fff;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+.file-input-text {
+  display: block;
   font-size: 16px;
-  font-weight: bold;
-  transition: background 0.3s;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.file-input-text.small {
+  font-size: 14px;
+  color: #888;
+  font-style: italic;
+}
+
+.file-input-selected {
+  margin-top: 10px;
+  padding: 8px;
+  font-size: 14px;
+  color: #4caf50;
+  font-weight: 500;
+  background-color: rgba(76, 175, 80, 0.1);
+  border-radius: 5px;
+  display: inline-block;
+}
+
+/* Specific file input containers */
+.evidence-file-container .file-input-wrapper {
+  border-color: #64b5f6;
+  background-color: rgba(100, 181, 246, 0.05);
+}
+
+.evidence-file-container .file-input-wrapper:hover {
+  background-color: rgba(100, 181, 246, 0.1);
+}
+
+.evidence-file-container .file-input-icon {
+  color: #64b5f6;
+}
+
+.image-file-container .file-input-wrapper {
+  border-color: #66bb6a;
+  background-color: rgba(102, 187, 106, 0.05);
+}
+
+.image-file-container .file-input-wrapper:hover {
+  background-color: rgba(102, 187, 106, 0.1);
+}
+
+.image-file-container .file-input-icon {
+  color: #66bb6a;
+}
+
+/* Button styles */
+.button {
+  background-color: #ff7043;
+  color: #fff;
+  padding: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 12px rgba(255, 112, 67, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-top: 15px;
 }
 
 .button:hover {
-  background-color: #d95a40;
+  background-color: #f06233;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 14px rgba(255, 112, 67, 0.35);
 }
 
+.button:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 6px rgba(255, 112, 67, 0.25);
+}
+
+/* Message styles */
 .success {
-  color: #c2e7b1;
+  color: #1b5e20;
+  background-color: #e8f5e9;
   text-align: center;
-  font-weight: bold;
+  font-weight: 600;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 22px;
+  border-left: 5px solid #1b5e20;
 }
 
 .error {
-  color: #f87154;
+  color: #c62828;
+  background-color: #ffebee;
   text-align: center;
-  font-weight: bold;
+  font-weight: 600;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 22px;
+  border-left: 5px solid #c62828;
+}
+
+/* Category styles */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='292.4' height='292.4'%3E%3Cpath fill='%23ff7043' d='M287 69.4a17.6 17.6 0 0 0-13-5.4H18.4c-5 0-9.3 1.8-12.9 5.4A17.6 17.6 0 0 0 0 82.2c0 5 1.8 9.3 5.4 12.9l128 127.9c3.6 3.6 7.8 5.4 12.8 5.4s9.2-1.8 12.8-5.4L287 95c3.5-3.5 5.4-7.8 5.4-12.8 0-5-1.9-9.2-5.5-12.8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px top 50%;
+  background-size: 14px auto;
+  padding-right: 34px;
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+  .container#createFundraiser {
+    padding: 24px;
+    margin: 20px auto;
+    border-radius: 14px;
+  }
+  h2 {
+    font-size: 26px;
+  }
+  .input, .textarea, .select, select, .button {
+    padding: 14px;
+    font-size: 16px;
+  }
+  .file-input-wrapper {
+    padding: 15px;
+  }
+  .file-input-icon {
+    font-size: 24px;
+  }
+  .file-input-text {
+    font-size: 15px;
+  }
+}
+
+/* Animation for form submission */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form > * {
+  animation: fadeInUp 0.35s ease-out forwards;
 }
