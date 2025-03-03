@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import "./UserProfile.css";
+import Avatar from '../../assets/icons/avatar.png';
+
 
 const UserProfile = () => {
   // Стан профілю користувача (можна замінити на дані з API)
@@ -14,7 +16,7 @@ const UserProfile = () => {
   return (
     <div className="profile-container">
       <div className="profile-header">
-        <img src={user.image} alt="User Avatar" className="profile-avatar" />
+        <img src={Avatar} alt="User Avatar" className="profile-avatar" />
         <h2>{user.username}</h2>
         <p>{user.email}</p>
       </div>

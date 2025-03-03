@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './EditUserProfile.css'; 
 
 const EditUserProfile = () => {
   const [userData, setUserData] = useState({
@@ -9,7 +10,6 @@ const EditUserProfile = () => {
   });
 
   useEffect(() => {
-    // Отримуємо дані профілю при завантаженні сторінки
     axios.get('http://127.0.0.1:8000/api/user/profile/')
       .then(response => setUserData(response.data))
       .catch(error => console.error('Error fetching user data:', error));
@@ -30,9 +30,9 @@ const EditUserProfile = () => {
   };
 
   return (
-    <div>
+    <div className="edit-profile-container">
       <h2>Edit Profile</h2>
-      <form onSubmit={handleSubmit}>
+      <form className="edit-profile-form" onSubmit={handleSubmit}>
         <input
           type="text"
           name="name"
