@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ThemeContext } from "../ThemeContext"; // Adjust path as needed
+import { ThemeContext } from "../ThemeContext";
 import "../components/FilterPanel.css";
 
 const FilterPanel = () => {
@@ -10,7 +10,6 @@ const FilterPanel = () => {
     const [helpType, setHelpType] = useState(searchParams.get("helpType") || "");
     const [urgency, setUrgency] = useState(searchParams.get("urgency") || "");
     
-    // Get current theme from context
     const { theme } = useContext(ThemeContext);
 
     useEffect(() => {
@@ -23,9 +22,6 @@ const FilterPanel = () => {
         setSearchParams(params);
     }, [category, location, helpType, urgency, setSearchParams]);
 
-    const handleFilterChange = (setter, value) => setter(value);
-
-    // Функція для скидання фільтрів
     const handleResetFilters = () => {
         setCategory("");
         setLocation("");
@@ -38,7 +34,11 @@ const FilterPanel = () => {
             <h3>Фільтри</h3>
             <div className="filter-group">
                 <label>Категорія:</label>
-                <select value={category} onChange={(e) => handleFilterChange(setCategory, e.target.value)}>
+                <select 
+                    value={category} 
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="filter-select"
+                >
                     <option value="">Всі категорії</option>
                     <option value="health">Здоров'я</option>
                     <option value="social">Соціальна допомога</option>
@@ -50,7 +50,11 @@ const FilterPanel = () => {
 
             <div className="filter-group">
                 <label>Локація:</label>
-                <select value={location} onChange={(e) => handleFilterChange(setLocation, e.target.value)}>
+                <select 
+                    value={location} 
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="filter-select"
+                >
                     <option value="">Всі локації</option>
                     <option value="kyiv">Київ</option>
                     <option value="lviv">Львів</option>
@@ -61,7 +65,11 @@ const FilterPanel = () => {
 
             <div className="filter-group">
                 <label>Тип допомоги:</label>
-                <select value={helpType} onChange={(e) => handleFilterChange(setHelpType, e.target.value)}>
+                <select 
+                    value={helpType} 
+                    onChange={(e) => setHelpType(e.target.value)}
+                    className="filter-select"
+                >
                     <option value="">Всі типи допомоги</option>
                     <option value="money">Фінансова допомога</option>
                     <option value="volunteer">Волонтерська допомога</option>
@@ -70,15 +78,21 @@ const FilterPanel = () => {
 
             <div className="filter-group">
                 <label>Терміновість:</label>
-                <select value={urgency} onChange={(e) => handleFilterChange(setUrgency, e.target.value)}>
+                <select 
+                    value={urgency} 
+                    onChange={(e) => setUrgency(e.target.value)}
+                    className="filter-select"
+                >
                     <option value="">Будь-яка терміновість</option>
                     <option value="urgent">Терміново</option>
                     <option value="non-urgent">Не терміново</option>
                 </select>
             </div>
 
-            {/* Кнопка для скидання фільтрів */}
-            <button onClick={handleResetFilters} className="reset-button">
+            <button 
+                onClick={handleResetFilters} 
+                className="reset-button"
+            >
                 Скинути фільтри
             </button>
         </div>

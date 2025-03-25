@@ -1,144 +1,190 @@
-/* Base styles for filter panel */
+/* Filter Panel Styles */
 .filter-panel {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 16px;
     align-items: start;
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(61, 133, 198, 0.1);
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
 }
 
 .filter-panel h3 {
     width: 100%;
-    margin-top: 0;
-    margin-bottom: 12px;
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 700;
 }
 
 .filter-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    min-width: 200px;
+    gap: 8px;
+    min-width: 220px;
+    flex: 1;
 }
 
 .filter-group label {
-    font-weight: 500;
-}
-
-.filter-panel select, 
-.filter-panel input {
-    padding: 10px 12px;
-    border-radius: 6px;
+    font-weight: 600;
     font-size: 14px;
-    transition: all 0.2s ease;
 }
 
-.filter-panel select:focus, 
-.filter-panel input:focus {
-    outline: none;
-}
-
-.filter-panel button {
-    padding: 10px 16px;
-    border-radius: 6px;
+.filter-select {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
     cursor: pointer;
-    transition: all 0.2s ease;
+}
+
+.reset-button {
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     border: none;
     margin-top: auto;
     align-self: flex-end;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.filter-panel button:hover {
-    transform: translateY(-1px);
+.reset-button:hover {
+    transform: translateY(-2px);
 }
 
-/* Light Theme Styles */
+.reset-button::before {
+    content: "✕";
+    font-size: 16px;
+}
+
+/* Light Theme */
 .filter-panel.light {
-    background: #eaf2ff;
-    border: 1px solid #e0e7f5;
+    background: #FFFFFF;
+    border: 1px solid #E0E7FF;
 }
 
 .filter-panel.light h3 {
-    color: #333;
+    color: #3D85C6;
 }
 
 .filter-panel.light label {
-    color: #444;
+    color: #555;
 }
 
-.filter-panel.light select, 
-.filter-panel.light input {
-    border: 1px solid #c0d6ff;
-    background: #ffffff;
+.filter-panel.light .filter-select {
+    border-color: #C0D6FF;
+    background-color: #FFFFFF;
     color: #333;
 }
 
-.filter-panel.light select:focus, 
-.filter-panel.light input:focus {
-    border-color: #4285F4;
-    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+.filter-panel.light .filter-select:focus {
+    border-color: #3D85C6;
+    box-shadow: 0 0 0 3px rgba(61, 133, 198, 0.2);
+    outline: none;
 }
 
-.filter-panel.light button {
-    background: #4285F4;
+.filter-panel.light .reset-button {
+    background-color: #FF6F61;
     color: white;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.filter-panel.light button:hover {
-    background: #3367D6;
-    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.15);
+.filter-panel.light .reset-button:hover {
+    background-color: #E65A50;
+    box-shadow: 0 4px 12px rgba(255, 111, 97, 0.3);
 }
 
-/* Dark Theme Styles */
+/* Dark Theme */
 .filter-panel.dark {
-    background: #2d3748;
-    border: 1px solid #4a5568;
+    background: #1E293B;
+    border: 1px solid #334155;
 }
 
 .filter-panel.dark h3 {
-    color: #e2e8f0;
+    color: #6AA84F;
 }
 
 .filter-panel.dark label {
-    color: #cbd5e0;
+    color: #E2E8F0;
 }
 
-.filter-panel.dark select, 
-.filter-panel.dark input {
-    border: 1px solid #4a5568;
-    background: #1a202c;
-    color: #e2e8f0;
+.filter-panel.dark .filter-select {
+    border-color: #475569;
+    background-color: #1E293B;
+    color: #F8FAFC;
 }
 
-.filter-panel.dark select:focus, 
-.filter-panel.dark input:focus {
-    border-color: #63b3ed;
-    box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.25);
+.filter-panel.dark .filter-select:focus {
+    border-color: #6AA84F;
+    box-shadow: 0 0 0 3px rgba(106, 168, 79, 0.3);
+    outline: none;
 }
 
-.filter-panel.dark button {
-    background: #4299e1;
+.filter-panel.dark .reset-button {
+    background-color: #FF4D4D;
     color: white;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.filter-panel.dark button:hover {
-    background: #3182ce;
-    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.3);
+.filter-panel.dark .reset-button:hover {
+    background-color: #E63D3D;
+    box-shadow: 0 4px 12px rgba(255, 77, 77, 0.3);
+}
+
+.reset-button {
+    padding: 6px 10px; /* Компактніший padding */
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px; /* Менший розмір шрифту */
+    font-weight: 600;
+    border: none;
+    margin-top: auto;
+    align-self: flex-end;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px; /* Менший відступ між іконкою та текстом */
+    height: 40px; /* Менша висота */
+    min-width: auto; /* Автоматична мінімальна ширина */
+    width: auto; /* Автоматична ширина за вмістом */
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.reset-button::before {
+    content: "✕";
+    margin-right: 2px;
+}
+
+/* Ховер-ефекти */
+.filter-panel.light .reset-button:hover,
+.filter-panel.dark .reset-button:hover {
+    transform: none; /* Видаляємо підйом при наведенні */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Менш виразна тінь */
 }
 
 @media (max-width: 768px) {
+    .filter-panel {
+        gap: 12px;
+        padding: 16px;
+    }
+    
     .filter-group {
         width: 100%;
     }
     
-    .filter-panel button {
+    .reset-button {
         width: 100%;
-        margin-top: 12px;
+        justify-content: center;
     }
 }

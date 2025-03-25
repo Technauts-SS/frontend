@@ -32,17 +32,6 @@ h2 {
   padding-bottom: 12px;
 }
 
-h2::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 70px;
-  height: 4px;
-  background-color: #ff7043;
-  border-radius: 3px;
-}
 
 /* Form styles */
 .form {
