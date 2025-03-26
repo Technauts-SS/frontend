@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../api';
 import './VolunteerAuth.css';
 
 const VolunteerAuth = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const isLogin = location.pathname === '/login';
 
   const [formData, setFormData] = useState({
@@ -12,77 +16,136 @@ const VolunteerAuth = () => {
     confirmPassword: '',
     fullName: '',
     phone: '',
-    interests: []
   });
 
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [backendError, setBackendError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-
+    
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+    
+    if (backendError) setBackendError('');
+    
+    console.log('Form data after change:', formData);
   };
 
   const validateForm = () => {
     const newErrors = {};
+    
+    if (!formData.email) {
+      newErrors.email = "Email обов'язковий";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Невірний формат email";
+    }
 
-    if (!formData.email) newErrors.email = "Email обов'язковий";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Невірний формат email";
-
-    if (!formData.password) newErrors.password = "Пароль обов'язковий";
-    else if (formData.password.length < 6) newErrors.password = "Пароль має бути не менше 6 символів";
+    if (!formData.password) {
+      newErrors.password = "Пароль обов'язковий";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Мінімум 6 символів";
+    }
 
     if (!isLogin) {
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = "Паролі не співпадають";
       }
-
-      if (!formData.fullName) newErrors.fullName = "Ім'я обов'язкове";
-
+      if (!formData.fullName) {
+        newErrors.fullName = "Повне ім'я обов'язкове";
+      }
       if (!formData.phone) {
         newErrors.phone = "Телефон обов'язковий";
       } else if (!/^\+380\d{9}$/.test(formData.phone.replace(/\s/g, ''))) {
-        newErrors.phone = "Телефон має відповідати формату +380 XX XXX XX XX";
+        newErrors.phone = "Формат: +380XXXXXXXXX";
       }
     }
 
+    console.log('Validation errors:', newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setBackendError('');
+    
+    console.log('Form submit initiated', formData);
+    
+    if (!validateForm()) return;
+  
+    setIsSubmitting(true);
+    
+    try {
+      if (isLogin) {
+        console.log('Attempting login with email:', formData.email);
+        await login(formData.email, formData.password);
+        console.log('Login successful');
+        navigate('/profile');
+      } else {
+        const username = formData.email.split('@')[0];
+        const cleanPhone = formData.phone.replace(/\D/g, '');
+        
+        const payload = {
+          username: username,
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.fullName,
+          phone_number: cleanPhone.length > 0 ? `+${cleanPhone}` : null
+        };
 
-    if (validateForm()) {
-      setIsSubmitting(true);
-
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log("Form submitted", formData);
-        alert(isLogin ? "Вхід успішний!" : "Реєстрація успішна!");
-      } catch (error) {
-        console.error("Error submitting form:", error);
-        alert("Сталася помилка при обробці запиту");
-      } finally {
-        setIsSubmitting(false);
+        console.log('Attempting registration with payload:', payload);
+        const response = await api.post('/users/', payload);
+        console.log('Registration successful:', response.data);
+        alert('Реєстрація успішна! Тепер увійдіть у систему.');
+        navigate('/login');
       }
+    } catch (error) {
+      console.error('Request failed:', error);
+      
+      if (error.response) {
+        console.log('Response error:', error.response);
+        
+        if (error.response.status === 400) {
+          const errors = error.response.data;
+          let errorMsg = '';
+          
+          if (errors.username) errorMsg += `Логін: ${errors.username.join(' ')}\n`;
+          if (errors.email) errorMsg += `Email: ${errors.email.join(' ')}\n`;
+          if (errors.password) errorMsg += `Пароль: ${errors.password.join(' ')}\n`;
+          if (errors.phone_number) errorMsg += `Телефон: ${errors.phone_number.join(' ')}\n`;
+          
+          setBackendError(errorMsg || 'Невірні дані реєстрації');
+        } else {
+          setBackendError(`Помилка сервера: ${error.response.status}`);
+        }
+      } else {
+        setBackendError('Помилка з\'єднання з сервером');
+      }
+    } finally {
+      setIsSubmitting(false);
+      console.log('Submit process ended');
     }
   };
 
   return (
-    <div className="flex">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center text-green-600">
-          {isLogin ? 'Увійти на платформу' : 'Зареєструватися як волонтер'}
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2 className="auth-title">
+          {isLogin ? 'Увійти в систему' : 'Реєстрація волонтера'}
         </h2>
+        
+        {backendError && (
+          <div className="backend-error">
+            {backendError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+          <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
               type="email"
@@ -90,53 +153,46 @@ const VolunteerAuth = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={errors.email ? 'error' : ''}
-              placeholder="your@email.com"
+              className={errors.email ? 'input-error' : ''}
+              placeholder="your@example.com"
               disabled={isSubmitting}
             />
-            {errors.email && <p className="error-message">{errors.email}</p>}
+            {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
-          <div className="mb-4">
+          <div className="form-group">
             <label htmlFor="password">Пароль</label>
-            <div className="password-container">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={errors.password ? 'error' : ''}
-                disabled={isSubmitting}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="password-toggle"
-              >
-                {showPassword ? '🙈' : '👁️'}
-              </button>
-            </div>
-            {errors.password && <p className="error-message">{errors.password}</p>}
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className={errors.password ? 'input-error' : ''}
+              placeholder="************"
+              disabled={isSubmitting}
+            />
+            {errors.password && <span className="error-message">{errors.password}</span>}
           </div>
 
           {!isLogin && (
             <>
-              <div className="mb-4">
+              <div className="form-group">
                 <label htmlFor="confirmPassword">Підтвердіть пароль</label>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type="password"
                   id="confirmPassword"
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={errors.confirmPassword ? 'error' : ''}
+                  className={errors.confirmPassword ? 'input-error' : ''}
+                  placeholder="************"
                   disabled={isSubmitting}
                 />
-                {errors.confirmPassword && <p className="error-message">{errors.confirmPassword}</p>}
+                {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
               </div>
 
-              <div className="mb-4">
+              <div className="form-group">
                 <label htmlFor="fullName">Повне ім'я</label>
                 <input
                   type="text"
@@ -144,13 +200,14 @@ const VolunteerAuth = () => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className={errors.fullName ? 'error' : ''}
+                  className={errors.fullName ? 'input-error' : ''}
+                  placeholder="Введіть ваше повне ім'я"
                   disabled={isSubmitting}
                 />
-                {errors.fullName && <p className="error-message">{errors.fullName}</p>}
+                {errors.fullName && <span className="error-message">{errors.fullName}</span>}
               </div>
 
-              <div className="mb-4">
+              <div className="form-group">
                 <label htmlFor="phone">Телефон</label>
                 <input
                   type="tel"
@@ -158,25 +215,22 @@ const VolunteerAuth = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className={errors.phone ? 'error' : ''}
-                  placeholder="+380 XX XXX XX XX"
+                  className={errors.phone ? 'input-error' : ''}
+                  placeholder="+380XXXXXXXXX"
                   disabled={isSubmitting}
                 />
-                {errors.phone && <p className="error-message">{errors.phone}</p>}
+                {errors.phone && <span className="error-message">{errors.phone}</span>}
               </div>
             </>
           )}
 
-          <button type="submit" className={isSubmitting ? 'loading' : ''} disabled={isSubmitting}>
-            {isSubmitting ? 'Завантаження...' : isLogin ? 'Увійти' : 'Зареєструватися'}
+          <button 
+            type="submit" 
+            className="submit-button" 
+            disabled={isSubmitting}
+          >
+            {isLogin ? 'Увійти' : 'Зареєструватися'}
           </button>
-
-          <div className="auth-link">
-            <p>
-              {isLogin ? 'Ще не маєте акаунта? ' : 'Вже маєте акаунт? '}
-              <Link to={isLogin ? '/register' : '/login'}>{isLogin ? 'Зареєструватися' : 'Увійти'}</Link>
-            </p>
-          </div>
         </form>
       </div>
     </div>

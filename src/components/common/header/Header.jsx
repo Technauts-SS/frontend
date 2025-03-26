@@ -1,46 +1,76 @@
 import React, { useContext, useState } from "react";
-import { Link } from "react-router-dom"; // Додаємо Link для навігації
+import { Link, useNavigate } from "react-router-dom";
 import { ThemeContext } from "../../../ThemeContext";
+import { useAuth } from "../../../context/AuthContext";
 import "./Header.css";
 
 function Header() {
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const { user, isAuthenticated, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
+  const toggleMenu = () => setIsOpen(!isOpen);
+  const closeMenu = () => setIsOpen(false);
 
-  const closeMenu = () => {
-    setIsOpen(false);
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    closeMenu();
   };
 
   return (
     <header className={`header ${theme === "dark" ? "theme-dark" : ""}`}>
-      {/* Логотип (тепер як посилання) */}
       <Link to="/" className="logo" onClick={closeMenu}>
         <span className="logo-green">3</span>
-        <span className="logo-black">boration</span>
+        <span className="logo-text">boration</span>
       </Link>
 
-      {/* Бургер-іконка */}
       <div className="burger-icon" onClick={toggleMenu}>
         ☰
       </div>
 
-      {/* Навігація */}
       <nav className={`nav-menu ${isOpen ? "open" : ""}`}>
-        {/* Тумблер темної теми */}
         <div className="theme-switch" onClick={toggleTheme}>
           <div className={`switch ${theme === "dark" ? "dark-mode" : ""}`}>
             <span className="switch-circle"></span>
           </div>
         </div>
 
-        {/* Використовуємо Link з передачею state */}
-        <Link to="/login" state={{ isLogin: true }} onClick={closeMenu}>Увійти</Link>
-        <Link to="/register" state={{ isLogin: false }} onClick={closeMenu}>Зареєструватися</Link>
-        <Link to="/support" onClick={closeMenu}>Підтримати проект</Link>
+        {!isAuthenticated ? (
+          <>
+            <Link
+              to="/login"
+              onClick={closeMenu}
+              className="nav-link"
+            >
+              Увійти
+            </Link>
+            <Link
+              to="/register"
+              onClick={closeMenu}
+              className="nav-auth-button"
+            >
+              Зареєструватися
+            </Link>
+          </>
+        ) : (
+          <div className="user-info">
+            <Link to="/profile" onClick={closeMenu} className="nav-link">
+              {user?.full_name || 'Профіль'}
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="logout-button"
+            >
+              Вийти
+            </button>
+          </div>
+        )}
+
+        <Link to="/support" onClick={closeMenu} className="nav-link">
+          Підтримати проект
+        </Link>
       </nav>
     </header>
   );

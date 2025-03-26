@@ -28,13 +28,13 @@ button:focus-visible {
 }
 /* Світла тема */
 .theme-light {
-  background-color: white;
+  background-color: #F8F8F8;
   color: black;
 }
 
 /* Темна тема */
 .theme-dark {
-  background-color: black;
+  background-color: #121212;
   color: white;
 }
 /* Стилі для кнопки */
