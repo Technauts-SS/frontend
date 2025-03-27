@@ -3,6 +3,7 @@ import api from '../../api';
 import "./UserProfile.css";
 import Avatar from '../../assets/icons/avatar.png';
 import { Link, useNavigate } from 'react-router-dom';
+import FundraisingCard from '../fundraising/FundraisingCard';
 
 const UserProfile = () => {
   const [user, setUser] = useState({
@@ -13,8 +14,10 @@ const UserProfile = () => {
     social_links: "",
     image: null,
   });
-
+  
+  const [userFundraisers, setUserFundraisers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fundraisersLoading, setFundraisersLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -22,31 +25,32 @@ const UserProfile = () => {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem('token');
-        console.log('Token from localStorage:', token);
         if (!token) {
           navigate('/login');
           return;
         }
-  
-        const response = await api.get('/users/me/');  // Прибрано параметр headers
-  
-        console.log('User data received:', response.data);
-  
+
+        // Отримання даних профілю
+        const userResponse = await api.get('/users/me/');
         setUser({
-          username: response.data.username,
-          email: response.data.email,
-          full_name: response.data.full_name,
-          phone_number: response.data.phone_number,
-          social_links: response.data.social_links,
-          image: response.data.image
+          username: userResponse.data.username,
+          email: userResponse.data.email,
+          full_name: userResponse.data.full_name,
+          phone_number: userResponse.data.phone_number,
+          social_links: userResponse.data.social_links,
+          image: userResponse.data.image
         });
-  
+
+        // Отримання зборів користувача
+        setFundraisersLoading(true);
+        const fundraisersResponse = await api.get('/fundraisers/my/');
+        setUserFundraisers(fundraisersResponse.data);
+        setFundraisersLoading(false);
+
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Error:', error);
         if (error.response?.status === 401) {
-          console.log('Unauthorized access. Removing token.');
           localStorage.removeItem('token');
-          localStorage.removeItem('user');
           navigate('/login');
         } else {
           setError('Не вдалося завантажити дані профілю');
@@ -55,10 +59,9 @@ const UserProfile = () => {
         setLoading(false);
       }
     };
-  
+
     fetchUserData();
   }, [navigate]);
-
 
   const handleLogout = async () => {
     try {
@@ -131,9 +134,44 @@ const UserProfile = () => {
         <Link to="/edit-profile" className="action-button edit-button">
           Редагувати профіль
         </Link>
+        <Link to="/create-fundraiser" className="action-button create-fundraiser-button">
+          Створити збір
+        </Link>
         <button onClick={handleLogout} className="action-button logout-button">
           Вийти з акаунту
         </button>
+      </div>
+
+      {/* Секція зі створеними зборами */}
+      <div className="user-fundraisers-section">
+        <h3>Мої збори</h3>
+        
+        {fundraisersLoading ? (
+          <p>Завантаження зборів...</p>
+        ) : userFundraisers.length > 0 ? (
+          <div className="fundraisers-grid">
+            {userFundraisers.map(fundraiser => (
+              <FundraisingCard
+                key={fundraiser.id}
+                id={fundraiser.id}
+                title={fundraiser.title}
+                category={fundraiser.category}
+                description={fundraiser.description}
+                image={fundraiser.image}
+                donationLink={fundraiser.donation_link}
+                currentAmount={fundraiser.current_amount}
+                goalAmount={fundraiser.goal_amount}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="no-fundraisers">
+            <p>Ви ще не створили жодного збору</p>
+            <Link to="/create-fundraiser" className="create-fundraiser-link">
+              Створити перший збір
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

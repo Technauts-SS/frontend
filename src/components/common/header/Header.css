@@ -103,10 +103,6 @@
   transition: all 0.3s;
 }
 
-.logout-button:hover {
-  background-color: #c1121f;
-  transform: translateY(-2px);
-}
 
 /* Тумблер теми */
 .theme-switch {
