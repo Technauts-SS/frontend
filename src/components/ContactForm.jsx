@@ -28,15 +28,15 @@ function ContactForm() {
 
       <form onSubmit={handleSubmit} className="contact-form">
         <label>
-          Ім'я:
+          Ім'я
           <input type="text" name="name" value={formData.name} onChange={handleChange} required />
         </label>
         <label>
-          Email:
+          Email
           <input type="email" name="email" value={formData.email} onChange={handleChange} required />
         </label>
         <label>
-          Повідомлення:
+          Повідомлення
           <textarea name="message" value={formData.message} onChange={handleChange} required />
         </label>
         <button type="submit">Відправити повідомлення</button>

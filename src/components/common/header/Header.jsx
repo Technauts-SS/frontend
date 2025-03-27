@@ -37,9 +37,11 @@ function Header() {
           </div>
         </div>
 
-        <a href="#" onClick={closeMenu}>Увійти</a>
-        <a href="#" onClick={closeMenu}>Зареєструватися</a>
-        <a href="#" onClick={closeMenu}>Підтримати проект</a>
+        {/* Використовуємо Link з передачею state */}
+        <Link to="/login" state={{ isLogin: true }} onClick={closeMenu}>Увійти</Link>
+        <Link to="/register" state={{ isLogin: false }} onClick={closeMenu}>Зареєструватися</Link>
+        {/* Видалено "Підтримати проект" */}
+        {/* <Link to="/support" onClick={closeMenu}>Підтримати проект</Link> */}
       </nav>
     </header>
   );
