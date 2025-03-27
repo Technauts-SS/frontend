@@ -1,71 +1,106 @@
-/* 📌 Заголовок */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rubik:wght@500;700&family=Manrope:wght@400;600&display=swap');
+
+:root {
+  --primary-color: #2a9d8f;
+  --secondary-color: #264653;
+  --background-light: #f4f4f4;
+  --background-dark: #181818;
+  --text-light: #ffffff;
+  --text-dark: #333;
+}
+
+/* 📌 Загальні стилі */
+body {
+  font-family: "Inter", sans-serif;
+  background: var(--background-light);
+  color: var(--text-dark);
+  margin: 0;
+  padding: 0;
+}
+
+/* 📌 Шапка сайту */
 .header {
   width: 100%;
   height: 70px;
-  position: absolute;
-  background-color: #fff;
+  background: var(--text-light);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 1000;
-  box-sizing: border-box;
-  padding: 10px 10px;
+  padding: 15px 20px;
+  position: fixed;
   top: 0;
   left: 0;
+  transition: background 0.3s ease-in-out;
 }
 
 .theme-dark .header {
-  background-color: #222;
-  color: white;
+  background: var(--background-dark);
+  color: var(--text-light);
 }
 
+/* 📌 Логотип */
 .logo {
-  font-family: "Poppins", sans-serif;
-  font-size: 25px;
+  font-family: "Rubik", sans-serif;
+  font-size: 26px;
   font-weight: bold;
-  transition: transform 0.2s ease-in-out;
+  cursor: pointer;
+  transition: transform 0.3s ease-in-out;
+}
+
+.logo:hover {
+  transform: scale(1.05);
 }
 
 .logo-green {
-  color: #2a9d8f;
+  color: var(--primary-color);
   font-weight: bold;
 }
 
 .logo-black {
-  color: black;
+  color: var(--text-dark);
 }
 
 .theme-dark .logo-black {
-  color: white;
+  color: var(--text-light);
 }
 
+/* 📌 Навігація */
 nav {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 20px;
 }
 
-/* Посилання */
 nav a {
   text-decoration: none;
-  color: black;
+  color: var(--text-dark);
   font-weight: bold;
-  font-size: 20px;
+  font-size: 18px;
+  font-family: "Inter", sans-serif;
+  padding: 10px 25px; /* Збільшено відступ праворуч до 25px */
+  border-radius: 8px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+
+nav a:hover {
+  background: rgba(42, 157, 143, 0.2);
 }
 
 .theme-dark nav a {
-  color: white;
+  color: var(--text-light);
 }
 
-nav a:hover {
-  text-decoration: underline;
+.theme-dark nav a:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
-/* 📌 Тумблер темної теми */
+/* 📌 Темний режим */
 .theme-switch {
-  width: 40px;
-  height: 20px;
+  width: 50px;
+  height: 24px;
   background: linear-gradient(45deg, #ccc, #eee);
   border-radius: 20px;
   position: relative;
@@ -75,28 +110,44 @@ nav a:hover {
 }
 
 .switch-circle {
-  width: 16px;
-  height: 16px;
-  background: white;
+  width: 18px;
+  height: 18px;
+  background: #ffcf0e;
   border-radius: 50%;
   position: absolute;
   top: 50%;
-  left: 3px;
+  left: 4px;
   transform: translateY(-50%);
   transition: 0.3s;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Темний режим */
 .dark-mode {
-  background: linear-gradient(45deg, #444, #222);
+  background: var(--background-dark);
   box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
 }
 
 .dark-mode .switch-circle {
-  left: 22px;
-  background: #f1c40f;
-  box-shadow: 0 0 6px rgba(255, 200, 0, 0.7);
+  left: 26px;
+  background:#8b8980 ;
+  box-shadow: 0 0 6px rgba(193, 190, 179, 0.7);
+}
+
+/* 📌 Кнопки */
+.button {
+  background: linear-gradient(45deg, var(--primary-color), #21867a);
+  border-radius: 8px;
+  padding: 10px 20px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.button:hover {
+  background: linear-gradient(45deg, #21867a, #1e6f5c);
 }
 
 /* 📌 Бургер-меню */
@@ -106,11 +157,13 @@ nav a:hover {
   cursor: pointer;
 }
 
-/* 📌 Навігаційне меню (за замовчуванням відкрите) */
+/* 📌 Навігаційне меню */
 .nav-menu {
   display: flex;
   gap: 1rem;
+  padding-right: 30px; /* Збільшено правий відступ */
 }
+
 
 /* 📱 Адаптація для мобільних */
 @media (max-width: 768px) {
@@ -126,16 +179,17 @@ nav a:hover {
 
   .nav-menu {
     position: absolute;
-    top: 60px;
+    top: 70px;
     right: 0;
-    background: #222;
-    width: 200px;
+    background: var(--secondary-color);
+    width: 220px;
     flex-direction: column;
     align-items: center;
     transform: translateX(100%);
     transition: transform 0.3s ease-in-out;
-    padding: 10px 0;
+    padding: 15px 0;
     box-shadow: -4px 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px 0 0 10px;
   }
 
   .nav-menu.open {
@@ -144,14 +198,16 @@ nav a:hover {
 
   .nav-menu a {
     color: white;
-    padding: 10px;
+    padding: 12px;
     text-decoration: none;
     font-size: 18px;
+    font-family: "Inter", sans-serif;
+    transition: background 0.3s;
+    width: 100%;
+    text-align: center;
   }
 
   .nav-menu a:hover {
     background: rgba(255, 255, 255, 0.2);
-    width: 100%;
-    text-align: center;
   }
 }
