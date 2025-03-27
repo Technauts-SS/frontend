@@ -1,0 +1,25 @@
+.category-filter {
+    margin-bottom: 15px;
+    padding: 10px;
+}
+
+.category-filter ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    gap: 10px;
+}
+
+.category-filter button {
+    background: white;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.category-filter button:hover {
+    background: #f0f0f0;
+}

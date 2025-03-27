@@ -1,0 +1,144 @@
+/* Base styles for filter panel */
+.filter-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: start;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.filter-panel h3 {
+    width: 100%;
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 200px;
+}
+
+.filter-group label {
+    font-weight: 500;
+}
+
+.filter-panel select, 
+.filter-panel input {
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.filter-panel select:focus, 
+.filter-panel input:focus {
+    outline: none;
+}
+
+.filter-panel button {
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    margin-top: auto;
+    align-self: flex-end;
+}
+
+.filter-panel button:hover {
+    transform: translateY(-1px);
+}
+
+/* Light Theme Styles */
+.filter-panel.light {
+    background: #eaf2ff;
+    border: 1px solid #e0e7f5;
+}
+
+.filter-panel.light h3 {
+    color: #333;
+}
+
+.filter-panel.light label {
+    color: #444;
+}
+
+.filter-panel.light select, 
+.filter-panel.light input {
+    border: 1px solid #c0d6ff;
+    background: #ffffff;
+    color: #333;
+}
+
+.filter-panel.light select:focus, 
+.filter-panel.light input:focus {
+    border-color: #4285F4;
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+}
+
+.filter-panel.light button {
+    background: #4285F4;
+    color: white;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-panel.light button:hover {
+    background: #3367D6;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark Theme Styles */
+.filter-panel.dark {
+    background: #2d3748;
+    border: 1px solid #4a5568;
+}
+
+.filter-panel.dark h3 {
+    color: #e2e8f0;
+}
+
+.filter-panel.dark label {
+    color: #cbd5e0;
+}
+
+.filter-panel.dark select, 
+.filter-panel.dark input {
+    border: 1px solid #4a5568;
+    background: #1a202c;
+    color: #e2e8f0;
+}
+
+.filter-panel.dark select:focus, 
+.filter-panel.dark input:focus {
+    border-color: #63b3ed;
+    box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.25);
+}
+
+.filter-panel.dark button {
+    background: #4299e1;
+    color: white;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.filter-panel.dark button:hover {
+    background: #3182ce;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+    .filter-group {
+        width: 100%;
+    }
+    
+    .filter-panel button {
+        width: 100%;
+        margin-top: 12px;
+    }
+}
