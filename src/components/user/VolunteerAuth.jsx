@@ -90,7 +90,6 @@ const VolunteerAuth = () => {
         const cleanPhone = formData.phone.replace(/\D/g, '');
         
         const payload = {
-          username: username,
           email: formData.email,
           password: formData.password,
           full_name: formData.fullName,

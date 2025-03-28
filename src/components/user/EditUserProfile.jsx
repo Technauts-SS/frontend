@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api';
 import { useNavigate } from 'react-router-dom';
 import './EditUserProfile.css';
+import Avatar from '../../assets/icons/avatar.png';
 
 const EditUserProfile = () => {
   const navigate = useNavigate();
   
-  // Початковий стан даних користувача
   const [userData, setUserData] = useState({
-    full_name: '',  // Змінено з name на full_name для відповідності бекенду
+    full_name: '',
     email: '',
-    phone_number: '',  // Змінено з phone на phone_number
+    phone_number: '',
     bio: '',
-    social_links: ''  // Додано нове поле
+    social_links: '',
+    image: null
   });
   
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState('');
+  const [removeImage, setRemoveImage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -25,25 +29,22 @@ const EditUserProfile = () => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://127.0.0.1:8000/api/users/me/', {
-          headers: {
-            'Authorization': `Token ${localStorage.getItem('token')}`  // Змінено з Bearer на Token
-          }
-        });
+        const response = await api.get('/users/me/');
         
-        // Оновлюємо стан з даними від бекенду
         setUserData({
           full_name: response.data.full_name || '',
           email: response.data.email || '',
           phone_number: response.data.phone_number || '',
           bio: response.data.bio || '',
-          social_links: response.data.social_links || ''
+          social_links: response.data.social_links || '',
+          image: response.data.image || null
         });
+        
+        setPreviewImage(response.data.image ? `${response.data.image}` : '');
         
       } catch (error) {
         console.error('Error fetching user data:', error);
         if (error.response?.status === 401) {
-          // Якщо токен недійсний - перенаправляємо на логін
           localStorage.removeItem('token');
           navigate('/login');
         } else {
@@ -64,14 +65,30 @@ const EditUserProfile = () => {
       [name]: value
     }));
     
-    // Очищення помилок при зміні поля
     if (formErrors[name]) {
-      setFormErrors(prev => {
-        const newErrors = {...prev};
-        delete newErrors[name];
-        return newErrors;
-      });
+      setFormErrors(prev => ({ ...prev, [name]: undefined }));
     }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setError('Розмір файлу не повинен перевищувати 2MB');
+        return;
+      }
+      
+      setSelectedImage(file);
+      setPreviewImage(URL.createObjectURL(file));
+      setRemoveImage(false);
+      setError(null);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setRemoveImage(true);
+    setSelectedImage(null);
+    setPreviewImage(Avatar);
   };
 
   const validateForm = () => {
@@ -91,6 +108,10 @@ const EditUserProfile = () => {
       errors.phone_number = "Введіть коректний номер телефону";
     }
     
+    if (userData.social_links && !/^https?:\/\/.+\..+/.test(userData.social_links)) {
+      errors.social_links = "Введіть коректне посилання (починається з http/https)";
+    }
+    
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -105,27 +126,34 @@ const EditUserProfile = () => {
       setError(null);
       setSuccess(null);
       
-      const response = await axios.put(
-        'http://127.0.0.1:8000/api/users/me/', 
-        userData,
-        {
-          headers: {
-            'Authorization': `Token ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
+      const formData = new FormData();
+      
+      formData.append('full_name', userData.full_name);
+      formData.append('email', userData.email);
+      formData.append('phone_number', userData.phone_number || '');
+      formData.append('bio', userData.bio || '');
+      formData.append('social_links', userData.social_links || '');
+      
+      if (selectedImage) {
+        formData.append('image', selectedImage);
+      } else if (removeImage) {
+        formData.append('remove_image', 'true');
+      }
+      
+      const response = await api.patch('/users/me/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
-      );
+      });
       
       setSuccess('Профіль успішно оновлено!');
       
-      // Оновлюємо локальні дані
       const updatedUser = {
         ...JSON.parse(localStorage.getItem('user') || '{}'),
         ...response.data
       };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       
-      // Перенаправлення через 2 секунди
       setTimeout(() => navigate('/profile'), 2000);
       
     } catch (error) {
@@ -133,13 +161,16 @@ const EditUserProfile = () => {
       
       let errorMessage = 'Помилка при оновленні профілю';
       if (error.response) {
-        // Обробка помилок валідації від бекенду
         if (error.response.status === 400) {
-          errorMessage = Object.values(error.response.data).join('\n');
+          errorMessage = Object.entries(error.response.data)
+            .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
+            .join('\n');
         } else if (error.response.status === 401) {
           localStorage.removeItem('token');
           navigate('/login');
           return;
+        } else if (error.response.status === 413) {
+          errorMessage = 'Файл занадто великий. Максимальний розмір: 2MB';
         }
       }
       
@@ -168,7 +199,7 @@ const EditUserProfile = () => {
       
       {error && (
         <div className="alert alert-error">
-          {error}
+          {error.split('\n').map((line, i) => <div key={i}>{line}</div>)}
         </div>
       )}
       
@@ -179,6 +210,42 @@ const EditUserProfile = () => {
       )}
       
       <form onSubmit={handleSubmit} className="edit-profile-form">
+        <div className="form-group">
+          <label htmlFor="image">Фото профілю</label>
+          <div className="image-preview-container">
+            <img 
+              src={removeImage ? Avatar : (previewImage || userData.image || Avatar)} 
+              alt="Прев'ю" 
+              className="image-preview"
+            />
+            <div className="image-controls">
+              <label className="btn-upload">
+                {userData.image || previewImage ? 'Змінити фото' : 'Додати фото'}
+                <input
+                  type="file"
+                  id="image"
+                  name="image"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={saving}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              
+              {!removeImage && (userData.image || previewImage) && (
+                <button
+                  type="button"
+                  className="btn-remove"
+                  onClick={handleRemovePhoto}
+                  disabled={saving}
+                >
+                  Видалити фото
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        
         <div className={`form-group ${formErrors.full_name ? 'has-error' : ''}`}>
           <label htmlFor="full_name">Повне ім'я</label>
           <input
@@ -188,6 +255,7 @@ const EditUserProfile = () => {
             value={userData.full_name}
             onChange={handleChange}
             required
+            disabled={saving}
           />
           {formErrors.full_name && (
             <span className="error-text">{formErrors.full_name}</span>
@@ -203,6 +271,7 @@ const EditUserProfile = () => {
             value={userData.email}
             onChange={handleChange}
             required
+            disabled={saving}
           />
           {formErrors.email && (
             <span className="error-text">{formErrors.email}</span>
@@ -218,6 +287,7 @@ const EditUserProfile = () => {
             value={userData.phone_number}
             onChange={handleChange}
             placeholder="+380XXXXXXXXX"
+            disabled={saving}
           />
           {formErrors.phone_number && (
             <span className="error-text">{formErrors.phone_number}</span>
@@ -232,10 +302,11 @@ const EditUserProfile = () => {
             value={userData.bio}
             onChange={handleChange}
             rows={4}
+            disabled={saving}
           />
         </div>
         
-        <div className="form-group">
+        <div className={`form-group ${formErrors.social_links ? 'has-error' : ''}`}>
           <label htmlFor="social_links">Соціальні мережі</label>
           <input
             type="url"
@@ -244,7 +315,11 @@ const EditUserProfile = () => {
             value={userData.social_links}
             onChange={handleChange}
             placeholder="https://example.com/profile"
+            disabled={saving}
           />
+          {formErrors.social_links && (
+            <span className="error-text">{formErrors.social_links}</span>
+          )}
         </div>
         
         <div className="form-actions">

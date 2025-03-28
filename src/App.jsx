@@ -39,9 +39,9 @@ function App() {
               <Route path="/fundraiser/:id" element={<FundraiserDetail />} />
               <Route path="/create-fundraiser" element={<CreateFundraiser />} />
               <Route path="/profile" element={<UserProfile />} />
-              <Route path="/profile/edit" element={<EditUserProfile />} />
-              <Route path="/login" element={<VolunteerAuth />} />
-              <Route path="/register" element={<VolunteerAuth />} />
+              <Route path="/edit-profile" element={<EditUserProfile />} />
+              <Route path="/login" element={<VolunteerAuth isLogin={true} />} />
+              <Route path="/register" element={<VolunteerAuth isLogin={false} />} />
             </Routes>
           </div>
         </Router>

@@ -2,8 +2,24 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "./FundraisingCard.css";
 
-const FundraisingCard = ({ id, title, category, description, image, donationLink }) => {
+const FundraisingCard = ({ 
+  id, 
+  title, 
+  category, 
+  description, 
+  image, 
+  donationLink,
+  onDelete, // Додаємо пропс для функції видалення
+  isOwner = false // Показує чи поточний користувач є власником
+}) => {
   const imageUrl = image ? (image.startsWith("http") ? image : `http://127.0.0.1:8000${image}`) : null;
+
+  const handleDelete = async (e) => {
+    e.preventDefault();
+    if (window.confirm("Ви впевнені, що хочете видалити цей збір?")) {
+      await onDelete(id);
+    }
+  };
 
   return (
     <div className="fundraising-card">
@@ -27,6 +43,11 @@ const FundraisingCard = ({ id, title, category, description, image, donationLink
             <a href={donationLink} className="donate-button" target="_blank" rel="noopener noreferrer">
               Підтримати
             </a>
+          )}
+          {isOwner && (
+            <button onClick={handleDelete} className="delete-button">
+              Видалити
+            </button>
           )}
         </div>
       </div>

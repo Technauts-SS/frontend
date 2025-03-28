@@ -12,6 +12,7 @@ const UserProfile = () => {
     full_name: "",
     phone_number: "",
     social_links: "",
+    bio: "",
     image: null,
   });
   
@@ -38,7 +39,10 @@ const UserProfile = () => {
           full_name: userResponse.data.full_name,
           phone_number: userResponse.data.phone_number,
           social_links: userResponse.data.social_links,
-          image: userResponse.data.image
+          bio: userResponse.data.bio,
+          image: userResponse.data.image 
+            ? `${process.env.REACT_APP_API_URL}${userResponse.data.image}`
+            : null
         });
 
         // Отримання зборів користувача
@@ -71,6 +75,16 @@ const UserProfile = () => {
       navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
+    }
+  };
+
+  const handleDeleteFundraiser = async (fundraiserId) => {
+    try {
+      await api.delete(`/fundraisers/${fundraiserId}/delete/`);  
+      setUserFundraisers(prev => prev.filter(f => f.id !== fundraiserId));
+    } catch (error) {
+      console.error('Failed to delete fundraiser:', error);
+      setError('Не вдалося видалити збір');
     }
   };
 
@@ -123,9 +137,21 @@ const UserProfile = () => {
         {user.social_links && (
           <div className="detail-item">
             <span className="detail-label">Соціальні мережі:</span>
-            <a href={user.social_links} target="_blank" rel="noopener noreferrer" className="detail-value link">
+            <a 
+              href={user.social_links} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="detail-value link"
+            >
               {user.social_links}
             </a>
+          </div>
+        )}
+
+        {user.bio && (
+          <div className="detail-item bio-item">
+            <span className="detail-label">Про себе:</span>
+            <p className="detail-value bio-text">{user.bio}</p>
           </div>
         )}
       </div>
@@ -142,12 +168,14 @@ const UserProfile = () => {
         </button>
       </div>
 
-      {/* Секція зі створеними зборами */}
       <div className="user-fundraisers-section">
         <h3>Мої збори</h3>
         
         {fundraisersLoading ? (
-          <p>Завантаження зборів...</p>
+          <div className="loading-container">
+            <div className="small-spinner"></div>
+            <p>Завантаження зборів...</p>
+          </div>
         ) : userFundraisers.length > 0 ? (
           <div className="fundraisers-grid">
             {userFundraisers.map(fundraiser => (
@@ -161,6 +189,8 @@ const UserProfile = () => {
                 donationLink={fundraiser.donation_link}
                 currentAmount={fundraiser.current_amount}
                 goalAmount={fundraiser.goal_amount}
+                onDelete={handleDeleteFundraiser}
+                isOwner={true}
               />
             ))}
           </div>

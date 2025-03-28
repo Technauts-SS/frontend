@@ -68,9 +68,6 @@ function Header() {
           </div>
         )}
 
-        <Link to="/support" onClick={closeMenu} className="nav-link">
-          Підтримати проект
-        </Link>
       </nav>
     </header>
   );
