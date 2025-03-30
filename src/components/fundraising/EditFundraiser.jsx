@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import './CreateFundraiser.css';
+import { useParams, useNavigate } from 'react-router-dom';
+import './EditFundraiser.css';
 
-const CreateFundraiser = () => {
+const EditFundraiser = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -11,48 +13,73 @@ const CreateFundraiser = () => {
         donation_link: '',
         evidence: '',
         evidence_link: '',
-        category: 'other'
+        category: 'other',
+        creator_name: '',
+        contact_info: ''
     });
     const [evidenceFile, setEvidenceFile] = useState(null);
     const [image, setImage] = useState(null);
+    const [currentImage, setCurrentImage] = useState('');
+    const [currentEvidenceFile, setCurrentEvidenceFile] = useState('');
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
-    const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [useCustomContact, setUseCustomContact] = useState(false);
-    const navigate = useNavigate();
+    const [isImageRemoved, setIsImageRemoved] = useState(false);
+    const [isEvidenceRemoved, setIsEvidenceRemoved] = useState(false);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        
-        // Redirect to login if no token
-        if (!token) {
-            navigate('/login', { state: { from: '/create-fundraiser' } });
-            return;
-        }
-
-        const fetchUserData = async () => {
+        const fetchFundraiserData = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/api/users/me/', {
+                const token = localStorage.getItem('token');
+                const response = await axios.get(`http://127.0.0.1:8000/api/fundraisers/${id}/`, {
                     headers: { 'Authorization': `Token ${token}` }
                 });
-                setUserData(response.data);
-            } catch (err) {
-                console.error('Failed to fetch user data:', err);
-                if (err.response?.status === 401) {
-                    // Remove invalid token and redirect to login
-                    localStorage.removeItem('token');
-                    navigate('/login', { state: { from: '/create-fundraiser' } });
-                } else {
-                    setError('Не вдалося завантажити дані профілю');
+                
+                const data = response.data;
+                setFormData({
+                    title: data.title,
+                    description: data.description,
+                    goal_amount: data.goal_amount,
+                    donation_link: data.donation_link || '',
+                    evidence: data.evidence || '',
+                    evidence_link: data.evidence_link || '',
+                    category: data.category,
+                    creator_name: data.creator_name,
+                    contact_info: data.contact_info
+                });
+                
+                if (data.image) {
+                    setCurrentImage(data.image.startsWith('http') ? data.image : `http://127.0.0.1:8000${data.image}`);
                 }
+                
+                if (data.evidence_file) {
+                    setCurrentEvidenceFile(data.evidence_file.startsWith('http') ? data.evidence_file : `http://127.0.0.1:8000${data.evidence_file}`);
+                }
+                
+                // Check if custom contacts are being used
+                const userResponse = await axios.get('http://127.0.0.1:8000/api/users/me/', {
+                    headers: { 'Authorization': `Token ${token}` }
+                });
+                const userData = userResponse.data;
+                
+                const isUsingCustomContacts = 
+                    data.creator_name !== (userData.full_name || userData.username) || 
+                    !data.contact_info.includes(userData.email);
+                
+                setUseCustomContact(isUsingCustomContacts);
+                
+            } catch (err) {
+                console.error('Failed to fetch fundraiser data:', err);
+                setError('Не вдалося завантажити дані збору');
+                navigate('/my-fundraisers');
             } finally {
                 setLoading(false);
             }
         };
         
-        fetchUserData();
-    }, [navigate]);
+        fetchFundraiserData();
+    }, [id, navigate]);
 
     const handleChange = (e) => {
         setFormData({
@@ -62,46 +89,94 @@ const CreateFundraiser = () => {
     };
 
     const handleFileChange = (e) => {
-        setEvidenceFile(e.target.files[0]);
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                setError('Розмір файлу доказів не повинен перевищувати 5MB');
+                return;
+            }
+            setEvidenceFile(file);
+            setIsEvidenceRemoved(false);
+        }
     };
 
     const handleImageChange = (e) => {
-        setImage(e.target.files[0]);
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                setError('Розмір зображення не повинен перевищувати 10MB');
+                return;
+            }
+            setImage(file);
+            setIsImageRemoved(false);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setImage(null);
+        setCurrentImage('');
+        setIsImageRemoved(true);
+    };
+
+    const handleRemoveEvidenceFile = () => {
+        setEvidenceFile(null);
+        setCurrentEvidenceFile('');
+        setIsEvidenceRemoved(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
         const parsedGoalAmount = parseFloat(formData.goal_amount);
-        if (isNaN(parsedGoalAmount) ){
+        if (isNaN(parsedGoalAmount)) {
             setError('Цільова сума повинна бути числом');
-            return;
-        }
-        if (parsedGoalAmount <= 0) {
-            setError('Цільова сума повинна бути більше нуля');
             return;
         }
 
         const data = new FormData();
+        
+        // Add all form fields
         Object.entries(formData).forEach(([key, value]) => {
-            if (value) data.append(key, value);
+            if (value !== null && value !== undefined) {
+                data.append(key, value);
+            }
         });
+        
         data.append('goal_amount', parsedGoalAmount);
         
+        // Handle contact info based on user choice
         if (!useCustomContact) {
+            const token = localStorage.getItem('token');
+            const userResponse = await axios.get('http://127.0.0.1:8000/api/users/me/', {
+                headers: { 'Authorization': `Token ${token}` }
+            });
+            const userData = userResponse.data;
+            
+            data.append('creator_name', userData.full_name || userData.username);
             data.append('contact_info', userData.email);
             if (userData.phone_number) {
                 data.append('contact_info', `${userData.email}, ${userData.phone_number}`);
             }
         }
 
-        if (evidenceFile) data.append('evidence_file', evidenceFile);
-        if (image) data.append('image', image);
+        // Handle image
+        if (image) {
+            data.append('image', image);
+        } else if (isImageRemoved) {
+            data.append('remove_image', 'true');
+        }
+
+        // Handle evidence file
+        if (evidenceFile) {
+            data.append('evidence_file', evidenceFile);
+        } else if (isEvidenceRemoved) {
+            data.append('remove_evidence_file', 'true');
+        }
 
         try {
             const token = localStorage.getItem('token');
-            await axios.post(
-                'http://127.0.0.1:8000/api/fundraisers/create/',
+            const response = await axios.put(
+                `http://127.0.0.1:8000/api/fundraisers/${id}/update/`,
                 data,
                 {
                     headers: {
@@ -113,73 +188,53 @@ const CreateFundraiser = () => {
 
             setSuccess(true);
             setError(null);
-            resetForm();
-        } catch (err) {
-            if (err.response?.status === 401) {
-                localStorage.removeItem('token');
-                navigate('/login', { state: { from: '/create-fundraiser' } });
+            
+            // Update image and evidence file URLs after successful update
+            if (response.data.image) {
+                setCurrentImage(response.data.image.startsWith('http') ? 
+                    response.data.image : 
+                    `http://127.0.0.1:8000${response.data.image}`);
+                setIsImageRemoved(false);
             } else {
-                setError(err.response?.data?.message || err.response?.data || 'Сталася помилка при створенні збору');
-                setSuccess(false);
+                setCurrentImage('');
             }
+            
+            if (response.data.evidence_file) {
+                setCurrentEvidenceFile(response.data.evidence_file.startsWith('http') ? 
+                    response.data.evidence_file : 
+                    `http://127.0.0.1:8000${response.data.evidence_file}`);
+                setIsEvidenceRemoved(false);
+            } else {
+                setCurrentEvidenceFile('');
+            }
+        } catch (err) {
+            console.error('Update error:', err);
+            setError(err.response?.data?.message || err.response?.data || 'Сталася помилка при оновленні збору');
+            setSuccess(false);
         }
-    };
-
-    const resetForm = () => {
-        setFormData({
-            title: '',
-            description: '',
-            goal_amount: '',
-            donation_link: '',
-            evidence: '',
-            evidence_link: '',
-            category: 'other'
-        });
-        setEvidenceFile(null);
-        setImage(null);
     };
 
     if (loading) {
         return (
             <div className="container">
                 <div className="loading-spinner"></div>
-                <p>Завантаження даних...</p>
-            </div>
-        );
-    }
-
-    if (!userData) {
-        // This should theoretically never be reached due to the redirect
-        return (
-            <div className="container error">
-                <p>Будь ласка, увійдіть в систему для створення збору</p>
-                <button 
-                    className="login-button"
-                    onClick={() => navigate('/login', { state: { from: '/create-fundraiser' } })}
-                >
-                    Увійти
-                </button>
+                <p>Завантаження даних збору...</p>
             </div>
         );
     }
 
     return (
-        <div className="container" id="createFundraiser">
-            <h2>Створити новий збір</h2>
+        <div className="container" id="editFundraiser">
+            <h2>Редагувати збір</h2>
             {success && (
                 <div className="success-message">
-                    <p>Збір успішно створено!</p>
-                    <button 
-                        className="create-another-button"
-                        onClick={resetForm}
-                    >
-                        Створити ще один збір
-                    </button>
+                    <p>Збір успішно оновлено!</p>
+                    <button onClick={() => navigate(`/fundraiser/${id}`)}>Перейти до збору</button>
                 </div>
             )}
             {error && <p className="error-message">{error}</p>}
 
-            <form onSubmit={handleSubmit} className="fundraiser-form">
+            <form onSubmit={handleSubmit} className="fundraiser-form" encType="multipart/form-data">
                 <div className="form-section">
                     <h3>Основна інформація</h3>
                     <div className="form-group">
@@ -239,7 +294,7 @@ const CreateFundraiser = () => {
                                 <label>Ім'я організатора</label>
                                 <input
                                     type="text"
-                                    value={userData.full_name || userData.username}
+                                    value={formData.creator_name}
                                     readOnly
                                     className="readonly"
                                 />
@@ -248,7 +303,7 @@ const CreateFundraiser = () => {
                                 <label>Контакти</label>
                                 <input
                                     type="text"
-                                    value={userData.email + (userData.phone_number ? `, ${userData.phone_number}` : '')}
+                                    value={formData.contact_info}
                                     readOnly
                                     className="readonly"
                                 />
@@ -256,6 +311,16 @@ const CreateFundraiser = () => {
                         </>
                     ) : (
                         <>
+                            <div className="form-group">
+                                <label>Ім'я організатора*</label>
+                                <input
+                                    type="text"
+                                    name="creator_name"
+                                    value={formData.creator_name || ''}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
                             <div className="form-group">
                                 <label>Контактна інформація*</label>
                                 <input
@@ -319,14 +384,33 @@ const CreateFundraiser = () => {
                     </div>
                     <div className="form-group file-upload">
                         <label>Файл доказів (PDF, JPG, PNG до 5MB)</label>
-                        <input
-                            type="file"
-                            onChange={handleFileChange}
-                            accept=".pdf,.jpg,.jpeg,.png"
-                        />
+                        {currentEvidenceFile ? (
+                            <div className="file-info">
+                                Поточний файл: <a 
+                                    href={currentEvidenceFile}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Переглянути
+                                </a>
+                                <button 
+                                    type="button" 
+                                    onClick={handleRemoveEvidenceFile}
+                                    className="remove-file"
+                                >
+                                    Видалити
+                                </button>
+                            </div>
+                        ) : (
+                            <input
+                                type="file"
+                                onChange={handleFileChange}
+                                accept=".pdf,.jpg,.jpeg,.png"
+                            />
+                        )}
                         {evidenceFile && (
                             <div className="file-info">
-                                Вибрано: {evidenceFile.name}
+                                Новий файл: {evidenceFile.name}
                                 <button 
                                     type="button" 
                                     onClick={() => setEvidenceFile(null)}
@@ -343,14 +427,31 @@ const CreateFundraiser = () => {
                     <h3>Зображення для збору</h3>
                     <div className="form-group file-upload">
                         <label>Зображення (JPG, PNG до 10MB)</label>
-                        <input
-                            type="file"
-                            onChange={handleImageChange}
-                            accept="image/*"
-                        />
+                        {currentImage ? (
+                            <div className="current-image-container">
+                                <img 
+                                    src={currentImage} 
+                                    alt="Поточне зображення збору" 
+                                    className="current-image-preview"
+                                />
+                                <button 
+                                    type="button" 
+                                    onClick={handleRemoveImage}
+                                    className="remove-image-button"
+                                >
+                                    Видалити зображення
+                                </button>
+                            </div>
+                        ) : (
+                            <input
+                                type="file"
+                                onChange={handleImageChange}
+                                accept="image/*"
+                            />
+                        )}
                         {image && (
                             <div className="file-info">
-                                Вибрано: {image.name}
+                                Нове зображення: {image.name}
                                 <button 
                                     type="button" 
                                     onClick={() => setImage(null)}
@@ -365,14 +466,14 @@ const CreateFundraiser = () => {
 
                 <div className="form-actions">
                     <button type="submit" className="submit-button">
-                        Створити збір
+                        Оновити збір
                     </button>
                     <button 
                         type="button" 
-                        onClick={resetForm} 
-                        className="reset-button"
+                        onClick={() => navigate(`/fundraiser/${id}`)} 
+                        className="cancel-button"
                     >
-                        Очистити форму
+                        Скасувати
                     </button>
                 </div>
             </form>
@@ -380,4 +481,4 @@ const CreateFundraiser = () => {
     );
 };
 
-export default CreateFundraiser;
+export default EditFundraiser;

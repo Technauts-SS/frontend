@@ -1,15 +1,82 @@
+/* UserProfile.css */
+
+/* Main container */
 .profile-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  color: var(--current-text);
 }
 
+/* Loading state */
+.profile-container.loading,
+.profile-container.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(42, 157, 143, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 1.5rem;
+}
+
+.small-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(42, 157, 143, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 1s ease-in-out infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+/* Error state */
+.error-message {
+  color: #e53e3e;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.retry-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.retry-button:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Profile header */
 .profile-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 2.5rem;
 }
 
 .profile-avatar {
@@ -17,143 +84,279 @@
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #4CAF50;
-  margin-bottom: 15px;
+  border: 3px solid var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.profile-header h2 {
+  font-size: 1.75rem;
+  margin: 0.5rem 0;
+  color: var(--current-text);
 }
 
 .profile-email {
-  color: #666;
-  margin-top: 5px;
+  color: #6b7280;
+  margin: 0;
+  font-size: 1rem;
 }
 
+/* Profile details */
 .profile-details {
-  margin-bottom: 30px;
+  background-color: var(--current-header-bg);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .detail-item {
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
 }
 
 .detail-label {
-  font-weight: bold;
-  color: #333;
-  display: inline-block;
-  width: 150px;
+  font-weight: 600;
+  width: 160px;
+  color: var(--current-text);
 }
 
 .detail-value {
-  color: #555;
+  flex: 1;
+  color: var(--current-text);
+}
+
+.bio-item {
+  flex-direction: column;
+}
+
+.bio-text {
+  margin-top: 0.5rem;
+  line-height: 1.6;
+  color: var(--current-text);
 }
 
 .link {
-  color: #4CAF50;
-  text-decoration: none;
+  word-break: break-all;
 }
 
-.link:hover {
-  text-decoration: underline;
-}
-
+/* Profile actions */
 .profile-actions {
   display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
+  gap: 1rem;
+  margin-bottom: 3rem;
   flex-wrap: wrap;
 }
 
 .action-button {
-  padding: 10px 20px;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
 }
 
 .edit-button {
-  background-color: #2196F3;
+  background-color: var(--primary-color);
   color: white;
+}
+
+.edit-button:hover {
+  background-color: var(--primary-hover);
 }
 
 .create-fundraiser-button {
-  background-color: #4CAF50;
-  color: white;
+  background-color: var(--current-header-bg);
+  color: var(--current-text);
+  border: 1px solid var(--current-border);
 }
 
-.logout-button {
-  background-color: #f44336;
-  color: white;
+.create-fundraiser-button:hover {
+  background-color: rgba(42, 157, 143, 0.1);
 }
 
-.action-button:hover {
-  opacity: 0.9;
+/* Edit profile section */
+.edit-profile-section {
+  background-color: var(--current-header-bg);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
 }
 
-.loading {
-  text-align: center;
-  padding: 50px;
+.edit-profile-section h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: var(--current-text);
 }
 
-.error {
-  text-align: center;
-  padding: 50px;
-  color: #f44336;
+.edit-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
-.retry-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
+.change-avatar-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--current-header-bg);
+  color: var(--current-text);
+  border: 1px solid var(--current-border);
+  border-radius: var(--radius);
   cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
 }
 
-/* Стилі для секції зборів */
+.change-avatar-button:hover {
+  background-color: rgba(42, 157, 143, 0.1);
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--current-text);
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--current-border);
+  border-radius: var(--radius);
+  background-color: var(--current-bg);
+  color: var(--current-text);
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.save-button {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
+.save-button:hover {
+  background-color: var(--primary-hover);
+}
+
+.cancel-button {
+  background-color: transparent;
+  color: var(--current-text);
+  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--current-border);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
+.cancel-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* User fundraisers section */
 .user-fundraisers-section {
-  margin-top: 40px;
-  padding-top: 30px;
-  border-top: 1px solid #eee;
+  margin-top: 3rem;
 }
 
 .user-fundraisers-section h3 {
   font-size: 1.5rem;
-  margin-bottom: 20px;
-  color: #333;
+  margin-bottom: 1.5rem;
+  color: var(--current-text);
 }
 
 .fundraisers-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
 }
 
 .no-fundraisers {
   text-align: center;
-  padding: 30px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+  padding: 2rem;
+  background-color: var(--current-header-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
 
 .no-fundraisers p {
-  margin-bottom: 15px;
-  color: #666;
+  margin-bottom: 1rem;
+  color: var(--current-text);
 }
 
 .create-fundraiser-link {
   display: inline-block;
-  padding: 10px 20px;
-  background-color: #4CAF50;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
   color: white;
-  border-radius: 4px;
+  border-radius: var(--radius);
+  font-weight: 600;
   text-decoration: none;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s;
 }
 
 .create-fundraiser-link:hover {
-  background-color: #45a049;
+  background-color: var(--primary-hover);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .profile-details {
+    padding: 1rem;
+  }
+  
+  .detail-item {
+    flex-direction: column;
+  }
+  
+  .detail-label {
+    width: 100%;
+    margin-bottom: 0.25rem;
+  }
+  
+  .profile-actions {
+    flex-direction: column;
+  }
+  
+  .edit-profile-section {
+    padding: 1.5rem;
+  }
+  
+  .fundraisers-grid {
+    grid-template-columns: 1fr;
+  }
 }

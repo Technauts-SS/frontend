@@ -21,190 +21,193 @@ body {
 /* 📌 Шапка сайту */
 .header {
   width: 100%;
-  height: 80px;
-  position: fixed;
-  background-color: #ffffff;
+  height: 70px;
+  background: var(--text-light);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 1000;
-  box-sizing: border-box;
-  padding: 0 40px;
+  padding: 15px 20px;
+  position: fixed;
   top: 0;
   left: 0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: background 0.3s ease-in-out;
 }
 
 .theme-dark .header {
-  background-color: #1a1a1a;
-  color: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  background: var(--background-dark);
+  color: var(--text-light);
 }
 
-/* Логотип */
+/* 📌 Логотип */
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  text-decoration: none;
-  transition: transform 0.2s ease-in-out;
+  font-family: "Rubik", sans-serif;
+  font-size: 26px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.3s ease-in-out;
+}
+
+.logo:hover {
+  transform: scale(1.05);
 }
 
 .logo-green {
-  font-family: "Poppins", sans-serif;
-  font-size: 28px;
-  font-weight: 700;
-  color: #2a9d8f;
+  color: var(--primary-color);
+  font-weight: bold;
 }
 
-.logo-text {
-  font-family: "Poppins", sans-serif;
-  font-size: 28px;
-  font-weight: 600;
-  color: #000000;
+.logo-black {
+  color: var(--text-dark);
 }
 
-.theme-dark .logo-text {
-  color: #ffffff;
+.theme-dark .logo-black {
+  color: var(--text-light);
 }
 
-/* Навігація */
-.nav-menu {
+/* 📌 Навігація */
+nav {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 20px;
 }
 
-.nav-link {
+nav a {
   text-decoration: none;
-  color: #333333;
-  font-family: "Poppins", sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  transition: color 0.3s;
-}
-
-.theme-dark .nav-link {
-  color: #e0e0e0;
-}
-
-.nav-link:hover {
-  color: #2a9d8f;
-}
-
-.nav-auth-button {
-  padding: 10px 20px;
+  color: var(--text-dark);
+  font-weight: bold;
+  font-size: 18px;
+  font-family: "Inter", sans-serif;
+  padding: 10px 25px; /* Збільшено відступ праворуч до 25px */
   border-radius: 8px;
-  background-color: #2a9d8f;
-  color: white;
-  font-family: "Poppins", sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s;
-}
-
-.nav-auth-button:hover {
-  background-color: #21867a;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(42, 157, 143, 0.3);
-}
-
-.logout-button {
-  padding: 10px 20px;
-  border-radius: 8px;
-  background-color: #e63946;
-  color: white;
-  border: none;
-  font-family: "Poppins", sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 
-/* Тумблер теми */
+nav a:hover {
+  background: rgba(42, 157, 143, 0.2);
+}
+
+.theme-dark nav a {
+  color: var(--text-light);
+}
+
+.theme-dark nav a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 📌 Темний режим */
 .theme-switch {
   width: 50px;
-  height: 25px;
-  background: #e0e0e0;
-  border-radius: 25px;
+  height: 24px;
+  background: linear-gradient(45deg, #ccc, #eee);
+  border-radius: 20px;
   position: relative;
   cursor: pointer;
   transition: 0.3s;
-  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
 }
 
 .switch-circle {
-
-  width: 21px;
-  height: 21px;
-  background: white;
+  width: 18px;
+  height: 18px;
+  background: #ffcf0e;
   border-radius: 50%;
   position: absolute;
+  top: 50%;
+  left: 4px;
+  transform: translateY(-50%);
   transition: 0.3s;
-  left: 2px;
-  top: 2px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
 }
 
 .dark-mode {
-  background: #2a9d8f;
+  background: var(--background-dark);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
 }
 
 .dark-mode .switch-circle {
-  left: 27px;
-  background: #f5f5f5;
+  left: 26px;
+  background:#8b8980 ;
+  box-shadow: 0 0 6px rgba(193, 190, 179, 0.7);
 }
 
-/* Бургер-меню */
+/* 📌 Кнопки */
+.button {
+  background: linear-gradient(45deg, var(--primary-color), #21867a);
+  border-radius: 8px;
+  padding: 10px 20px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.button:hover {
+  background: linear-gradient(45deg, #21867a, #1e6f5c);
+}
+
+/* 📌 Бургер-меню */
 .burger-icon {
   display: none;
-  font-size: 28px;
+  font-size: 2rem;
   cursor: pointer;
-  color: #333333;
 }
 
-.theme-dark .burger-icon {
-  color: #e0e0e0;
+/* 📌 Навігаційне меню */
+.nav-menu {
+  display: flex;
+  gap: 1rem;
+  padding-right: 30px; /* Збільшено правий відступ */
 }
 
-/* Адаптація для мобільних */
+
+/* 📱 Адаптація для мобільних */
 @media (max-width: 768px) {
   .header {
-    padding: 0 20px;
-    height: 70px;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px 15px;
   }
-  
+
   .burger-icon {
     display: block;
   }
 
   .nav-menu {
-    position: fixed;
+    position: absolute;
     top: 70px;
-    right: -100%;
-    width: 70%;
-    height: calc(100vh - 70px);
-    background: #ffffff;
+    right: 0;
+    background: var(--secondary-color);
+    width: 220px;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding: 30px 0;
-    gap: 25px;
-    transition: right 0.3s ease-in-out;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    padding: 15px 0;
+    box-shadow: -4px 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px 0 0 10px;
   }
-  
-  .theme-dark .nav-menu {
-    background: #1a1a1a;
-  }
+
   .nav-menu.open {
-    right: 0;
+    transform: translateX(0);
   }
 
-  .theme-switch {
-    margin-bottom: 20px;
+  .nav-menu a {
+    color: white;
+    padding: 12px;
+    text-decoration: none;
+    font-size: 18px;
+    font-family: "Inter", sans-serif;
+    transition: background 0.3s;
+    width: 100%;
+    text-align: center;
+  }
 
+  .nav-menu a:hover {
+    background: rgba(255, 255, 255, 0.2);
   }
 }

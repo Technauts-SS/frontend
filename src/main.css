@@ -1,53 +1,279 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rubik:wght@500;700&display=swap');
+:root {
+  /* Кольори */
+  --primary-color: #2a9d8f;
+  --primary-hover: #228e81;
+  
+  /* Світла тема */
+  --light-bg: #ffffff;
+  --light-text: #333333;
+  --light-border: #e2e8f0;
+  --light-gray: #f7fafc;
+  --light-header-bg: #ffffff;
+  
+  /* Темна тема */
+  --dark-bg: #121212;
+  --dark-text: #f5f5f5;
+  --dark-border: #2d3748;
+  --dark-gray: #1a202c;
+  --dark-header-bg: #1e1e1e;
+  
+  /* Поточні значення */
+  --current-bg: var(--light-bg);
+  --current-text: var(--light-text);
+  --current-header-bg: var(--light-header-bg);
+  --current-border: var(--light-border);
+  
+  /* Розміри */
+  --header-height: 70px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --radius: 8px;
+  --radius-full: 9999px;
+}
+
+.theme-dark {
+  --current-bg: var(--dark-bg);
+  --current-text: var(--dark-text);
+  --current-header-bg: var(--dark-header-bg);
+  --current-border: var(--dark-border);
+}
+/* 📌 Базові стилі */
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
+  padding-top: var(--header-height);
+  background-color: var(--current-bg);
+  color: var(--current-text);
+  transition: background-color var(--transition), color var(--transition);
+}
+
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--primary-color);
   text-decoration: inherit;
+  transition: color var(--transition);
 }
+
 a:hover {
-  color: #535bf2;
+  color: var(--primary-hover);
 }
-button:hover {
-  border-color: #646cff;
+
+button {
+  cursor: pointer;
+  transition: all var(--transition);
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-/* Світла тема */
-.theme-light {
-  background-color: #F8F8F8;
-  color: black;
+/* 📌 Контейнер */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
-/* Темна тема */
-.theme-dark {
-  background-color: #121212;
+/* 📌 Шапка */
+.header {
+  width: 100%;
+  height: var(--header-height);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: var(--current-header-bg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+
+/* 📌 Логотип */
+.logo {
+  font-family: "Rubik", sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.logo:hover {
+  transform: translateY(-1px);
+}
+
+.logo-green {
+  color: var(--primary-color);
+}
+
+.logo-text {
+  color: var(--current-text);
+}
+
+/* 📌 Навігація */
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-link {
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  transition: all var(--transition);
+  color: var(--current-text);
+}
+
+.nav-link:hover {
+  color: var(--primary-color);
+  background: rgba(42, 157, 143, 0.1);
+}
+
+/* 📌 Кнопки */
+.button {
+  padding: 8px 20px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-button {
+  background: var(--primary-color);
   color: white;
 }
-/* Стилі для кнопки */
-.theme-toggle {
-  background: none;
-  border: 1px solid #ccc;
-  padding: 8px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-left: auto;
+
+.register-button:hover {
+  background: var(--primary-hover);
 }
 
-.theme-toggle:hover {
-  background: rgba(255, 255, 255, 0.2);
+.logout-button {
+  color: var(--current-text);
+  border: 1px solid var(--current-border);
+}
+
+.logout-button:hover {
+  background: rgba(255, 0, 0, 0.05);
+}
+
+/* 📌 Перемикач теми */
+.theme-switch {
+  width: 48px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--transition);
+  background: var(--light-gray);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.theme-dark .theme-switch {
+  background: var(--dark-gray);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.switch-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform var(--transition);
+  background: #ffcf0e;
+}
+
+.theme-dark .switch-circle {
+  background: #8b8980;
+  transform: translateX(24px);
+}
+
+/* 📌 Бургер-меню */
+.burger-icon {
+  display: none;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  position: relative;
+  z-index: 101;
+  color: var(--current-text);
+}
+
+/* 📌 Мобільне меню */
+@media (max-width: 768px) {
+  .burger-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 280px;
+    height: 100vh;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 88px 24px 24px;
+    transition: right var(--transition);
+    z-index: 100;
+    background-color: var(--current-header-bg);
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .theme-dark .nav-menu {
+    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.3);
+  }
+
+  .nav-menu.open {
+    right: 0;
+  }
+
+  .nav-menu .theme-switch {
+    margin: 0 0 24px;
+  }
+
+  .nav-menu .nav-link,
+  .nav-menu .button {
+    width: 100%;
+    padding: 12px 16px;
+    margin: 4px 0;
+  }
+}
+
+/* 📌 Інформація про користувача */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info .nav-link {
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

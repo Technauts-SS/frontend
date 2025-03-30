@@ -2,7 +2,6 @@ import { useSearchParams } from "react-router-dom";
 import FundraisingList from "./fundraising/FundraisingList";
 import FilterPanel from "../components/FilterPanel";
 import "../components/CategoryPage.css";
-import helpImage from "../assets/images/help.png"; // Імпорт зображення
 
 const categoryMappings = {
   health: "Здоров'я",
@@ -33,7 +32,6 @@ const CategoryPage = () => {
                 category={category} 
                 location={location} 
                 helpType={helpType} 
-                urgency={urgency} 
             />
         </div>
     );

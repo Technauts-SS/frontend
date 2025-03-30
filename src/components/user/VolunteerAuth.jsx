@@ -16,11 +16,13 @@ const VolunteerAuth = () => {
     confirmPassword: '',
     fullName: '',
     phone: '',
+    profileImage: null
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [backendError, setBackendError] = useState('');
+  const [imagePreview, setImagePreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,8 +33,20 @@ const VolunteerAuth = () => {
     }
     
     if (backendError) setBackendError('');
-    
-    console.log('Form data after change:', formData);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, profileImage: file }));
+      
+      // Створення попереднього перегляду зображення
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const validateForm = () => {
@@ -64,7 +78,6 @@ const VolunteerAuth = () => {
       }
     }
 
-    console.log('Validation errors:', newErrors);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -73,32 +86,33 @@ const VolunteerAuth = () => {
     e.preventDefault();
     setBackendError('');
     
-    console.log('Form submit initiated', formData);
-    
     if (!validateForm()) return;
   
     setIsSubmitting(true);
     
     try {
       if (isLogin) {
-        console.log('Attempting login with email:', formData.email);
         await login(formData.email, formData.password);
-        console.log('Login successful');
         navigate('/profile');
       } else {
-        const username = formData.email.split('@')[0];
         const cleanPhone = formData.phone.replace(/\D/g, '');
         
-        const payload = {
-          email: formData.email,
-          password: formData.password,
-          full_name: formData.fullName,
-          phone_number: cleanPhone.length > 0 ? `+${cleanPhone}` : null
-        };
+        const formDataToSend = new FormData();
+        formDataToSend.append('email', formData.email);
+        formDataToSend.append('password', formData.password);
+        formDataToSend.append('full_name', formData.fullName);
+        formDataToSend.append('phone_number', cleanPhone.length > 0 ? `+${cleanPhone}` : '');
+        
+        if (formData.profileImage) {
+          formDataToSend.append('profile_image', formData.profileImage);
+        }
 
-        console.log('Attempting registration with payload:', payload);
-        const response = await api.post('/users/', payload);
-        console.log('Registration successful:', response.data);
+        const response = await api.post('/users/', formDataToSend, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
         alert('Реєстрація успішна! Тепер увійдіть у систему.');
         navigate('/login');
       }
@@ -106,16 +120,14 @@ const VolunteerAuth = () => {
       console.error('Request failed:', error);
       
       if (error.response) {
-        console.log('Response error:', error.response);
-        
         if (error.response.status === 400) {
           const errors = error.response.data;
           let errorMsg = '';
           
-          if (errors.username) errorMsg += `Логін: ${errors.username.join(' ')}\n`;
           if (errors.email) errorMsg += `Email: ${errors.email.join(' ')}\n`;
           if (errors.password) errorMsg += `Пароль: ${errors.password.join(' ')}\n`;
           if (errors.phone_number) errorMsg += `Телефон: ${errors.phone_number.join(' ')}\n`;
+          if (errors.profile_image) errorMsg += `Фото: ${errors.profile_image.join(' ')}\n`;
           
           setBackendError(errorMsg || 'Невірні дані реєстрації');
         } else {
@@ -126,7 +138,6 @@ const VolunteerAuth = () => {
       }
     } finally {
       setIsSubmitting(false);
-      console.log('Submit process ended');
     }
   };
 
@@ -139,7 +150,9 @@ const VolunteerAuth = () => {
         
         {backendError && (
           <div className="backend-error">
-            {backendError}
+            {backendError.split('\n').map((line, i) => (
+              <div key={i}>{line}</div>
+            ))}
           </div>
         )}
 
@@ -220,6 +233,27 @@ const VolunteerAuth = () => {
                 />
                 {errors.phone && <span className="error-message">{errors.phone}</span>}
               </div>
+
+              <div className="form-group">
+                <label htmlFor="profileImage">Фото профілю</label>
+                <input
+                  type="file"
+                  id="profileImage"
+                  name="profileImage"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  disabled={isSubmitting}
+                />
+                {imagePreview && (
+                  <div className="image-preview-container">
+                    <img 
+                      src={imagePreview} 
+                      alt="Попередній перегляд" 
+                      className="image-preview"
+                    />
+                  </div>
+                )}
+              </div>
             </>
           )}
 
@@ -228,7 +262,11 @@ const VolunteerAuth = () => {
             className="submit-button" 
             disabled={isSubmitting}
           >
-            {isLogin ? 'Увійти' : 'Зареєструватися'}
+            {isLogin ? (
+              isSubmitting ? 'Вхід...' : 'Увійти'
+            ) : (
+              isSubmitting ? 'Реєстрація...' : 'Зареєструватися'
+            )}
           </button>
         </form>
       </div>

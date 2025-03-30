@@ -9,6 +9,7 @@ import FundraisingList from "./components/fundraising/FundraisingList";
 import ContactForm from "./components/ContactForm";
 import CategoryPage from "./components/CategoryPage";
 import CreateFundraiser from "./components/fundraising/CreateFundraiser"; 
+import EditFundraiser from "./components/fundraising/EditFundraiser"; 
 import FundraiserDetail from "./components/fundraising/FundraiserDetail";
 import UserProfile from "./components/user/UserProfile";
 import EditUserProfile from "./components/user/EditUserProfile";
@@ -42,6 +43,7 @@ function App() {
               <Route path="/edit-profile" element={<EditUserProfile />} />
               <Route path="/login" element={<VolunteerAuth isLogin={true} />} />
               <Route path="/register" element={<VolunteerAuth isLogin={false} />} />
+              <Route path="/fundraiser/:id/edit" element={<EditFundraiser />} />
             </Routes>
           </div>
         </Router>
