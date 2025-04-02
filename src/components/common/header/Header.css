@@ -1,4 +1,24 @@
-/* 📌 Заголовок */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rubik:wght@500;700&family=Manrope:wght@400;600&display=swap');
+
+:root {
+  --primary-color: #2a9d8f;
+  --secondary-color: #264653;
+  --background-light: #f4f4f4;
+  --background-dark: #181818;
+  --text-light: #ffffff;
+  --text-dark: #333;
+}
+
+/* 📌 Загальні стилі */
+body {
+  font-family: "Inter", sans-serif;
+  background: var(--background-light);
+  color: var(--text-dark);
+  margin: 0;
+  padding: 0;
+}
+
+/* 📌 Шапка сайту */
 .header {
   width: 100%;
   height: 80px;
@@ -117,6 +137,7 @@
 }
 
 .switch-circle {
+
   width: 21px;
   height: 21px;
   background: white;
@@ -178,12 +199,12 @@
   .theme-dark .nav-menu {
     background: #1a1a1a;
   }
-
   .nav-menu.open {
     right: 0;
   }
 
   .theme-switch {
     margin-bottom: 20px;
+
   }
 }
