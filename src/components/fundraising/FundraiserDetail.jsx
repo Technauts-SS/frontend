@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import DonationForm from './DonationForm';
 import "./FundraiserDetail.css";
 
 const FundraiserDetail = () => {
@@ -13,6 +14,10 @@ const FundraiserDetail = () => {
     const [error, setError] = useState(null);
     const [isOwner, setIsOwner] = useState(false);
     const [imageError, setImageError] = useState(false);
+    const [showDonationForm, setShowDonationForm] = useState(false);
+    const [donations, setDonations] = useState([]);
+    const [animatedAmount, setAnimatedAmount] = useState(0);
+    const [animatedProgress, setAnimatedProgress] = useState(0);
 
     const getDefaultImage = (category) => {
         const categoryMap = {
@@ -28,7 +33,7 @@ const FundraiserDetail = () => {
     const getImageUrl = () => {
         if (imageError || !fundraiser?.image) return getDefaultImage(fundraiser?.category);
         if (fundraiser.image.startsWith('http')) return fundraiser.image;
-        if (fundraiser.image.startsWith('/uploads/')) return `http://127.0.0.1:8000${fundraiser.image}`;
+        if (fundraiser.image.startsWith('/media/')) return `http://127.0.0.1:8000${fundraiser.image}`;
         return fundraiser.image;
     };
 
@@ -49,56 +54,118 @@ const FundraiserDetail = () => {
     const getCategoryLabel = (category) => {
         const categories = {
             health: "Здоров'я",
-            social: "Соц.допомога",
-            education: "Освіта",
-            ecology: "Екологія",
+            social: "Соціальна допомога",
+            education: "Освіта та наука",
+            ecology: "Екологія та тварини",
             other: "Інше"
         };
         return categories[category] || category;
     };
 
-    useEffect(() => {
-        if (!id || isNaN(id)) {
-            setError('Невірний ідентифікатор збору');
+    const fetchFundraiserData = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            
+            const [fundraiserRes, donationsRes] = await Promise.all([
+                axios.get(`http://127.0.0.1:8000/api/fundraisers/${id}/`, { headers }),
+                axios.get(`http://127.0.0.1:8000/api/fundraisers/${id}/donations/`, { headers })
+                    .catch(() => ({ data: [] }))
+            ]);
+            
+            setFundraiser(fundraiserRes.data);
+            setDonations(donationsRes.data);
+            
+            // Анімація зміни суми
+            animateValue(animatedAmount, fundraiserRes.data.current_amount, setAnimatedAmount);
+            
+            // Анімація прогресу
+            const newProgress = fundraiserRes.data.goal_amount > 0 ? 
+                Math.min(100, (fundraiserRes.data.current_amount / fundraiserRes.data.goal_amount) * 100) : 0;
+            animateValue(animatedProgress, newProgress, setAnimatedProgress);
+            
+            const userId = localStorage.getItem('userId');
+            setIsOwner(userId && userId === fundraiserRes.data.creator?.id?.toString());
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            setError(error.response?.data?.message || 'Не вдалося завантажити дані');
+            toast.error(error.response?.data?.message || 'Помилка завантаження даних');
+        } finally {
             setLoading(false);
-            toast.error('Невірний ідентифікатор збору');
-            navigate('/');
-            return;
         }
+    };
 
-        const fetchFundraiser = async () => {
-            try {
-                const response = await axios.get(`http://127.0.0.1:8000/api/fundraisers/${id}/`);
-                
-                if (!response.data) {
-                    throw new Error('Збір не знайдено');
-                }
+    const animateValue = (start, end, setValue) => {
+        const duration = 500; // ms
+        const startTime = performance.now();
+        const step = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const fraction = Math.min(elapsed / duration, 1);
+            
+            setValue(start + (end - start) * fraction);
+            
+            if (fraction < 1) {
+                requestAnimationFrame(step);
+            }
+        };
+        
+        requestAnimationFrame(step);
+    };
 
-                setFundraiser(response.data);
-                
-                const userId = localStorage.getItem('userId');
-                setIsOwner(userId && userId === response.data.creator_id?.toString());
-            } catch (error) {
-                console.error('Помилка завантаження збору:', error);
-                const errorMessage = error.response?.data?.message || 
-                                  error.message || 
-                                  'Не вдалося завантажити збір';
-                setError(errorMessage);
-                toast.error(errorMessage);
-                
-                setTimeout(() => navigate('/'), 3000);
-            } finally {
-                setLoading(false);
+    useEffect(() => {
+        fetchFundraiserData();
+        
+        const handleFundraiserUpdate = (e) => {
+            if (e.detail.id === id) {
+                setFundraiser(prev => ({
+                    ...prev,
+                    current_amount: e.detail.currentAmount
+                }));
+                animateValue(animatedAmount, e.detail.currentAmount, setAnimatedAmount);
+                animateValue(animatedProgress, e.detail.progress, setAnimatedProgress);
             }
         };
 
-        fetchFundraiser();
-    }, [id, navigate]);
+        window.addEventListener('fundraiserUpdated', handleFundraiserUpdate);
+        return () => {
+            window.removeEventListener('fundraiserUpdated', handleFundraiserUpdate);
+        };
+    }, [id]);
+
+    const handleDonationSubmit = async (donationData) => {
+        try {
+            const response = await axios.post(
+                'http://127.0.0.1:8000/api/donate/',
+                { ...donationData, campaign: id }
+            );
+            
+            toast.success('Донат успішно здійснено!');
+            setShowDonationForm(false);
+            
+            // Оновлюємо дані
+            await fetchFundraiserData();
+            
+            // Сповіщуємо інші компоненти про оновлення
+            window.dispatchEvent(new CustomEvent('fundraiserUpdated', {
+                detail: { 
+                    id,
+                    currentAmount: response.data.campaign.current_amount,
+                    progress: (response.data.campaign.current_amount / response.data.campaign.goal_amount) * 100
+                }
+            }));
+        } catch (error) {
+            console.error('Donation error:', error);
+            toast.error(error.response?.data?.message || 'Помилка при здійсненні донату');
+        }
+    };
 
     const handleDelete = async () => {
         if (window.confirm("Ви впевнені, що хочете видалити цей збір?")) {
             try {
-                await axios.delete(`http://127.0.0.1:8000/api/fundraisers/${id}/`);
+                const token = localStorage.getItem('token');
+                await axios.delete(`http://127.0.0.1:8000/api/fundraisers/${id}/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 toast.success('Збір успішно видалено');
                 navigate('/');
             } catch (error) {
@@ -125,11 +192,6 @@ const FundraiserDetail = () => {
             </div>
         );
     }
-
-    const progressPercentage = Math.min(
-        100, 
-        (fundraiser.current_amount / fundraiser.goal_amount) * 100
-    );
 
     return (
         <div className="fundraiser-detail">
@@ -170,7 +232,7 @@ const FundraiserDetail = () => {
 
                     <div className="fundraiser-creator">
                         <span className="meta-label">Організатор:</span>
-                        <span>{fundraiser.creator_name || 'Невідомий організатор'}</span>
+                        <span>{fundraiser.creator_name || fundraiser.creator?.full_name || 'Невідомий організатор'}</span>
                     </div>
 
                     <div className="fundraiser-date">
@@ -183,12 +245,13 @@ const FundraiserDetail = () => {
                             <div 
                                 className="progress-bar" 
                                 style={{ 
-                                    width: `${progressPercentage}%`,
-                                    backgroundColor: progressPercentage >= 100 ? '#4CAF50' : '#2196F3'
+                                    width: `${animatedProgress}%`,
+                                    backgroundColor: animatedProgress >= 100 ? '#4CAF50' : '#2196F3',
+                                    transition: 'width 0.5s ease, background-color 0.3s ease'
                                 }}
                             ></div>
                             <span className="progress-percentage">
-                                {Math.round(progressPercentage)}%
+                                {Math.round(animatedProgress)}%
                             </span>
                         </div>
 
@@ -196,7 +259,7 @@ const FundraiserDetail = () => {
                             <div className="amount-item">
                                 <span className="amount-label">Зібрано:</span>
                                 <span className="amount-value collected">
-                                    {formatAmount(fundraiser.current_amount)}
+                                    {formatAmount(animatedAmount)}
                                 </span>
                             </div>
                             <div className="amount-item">
@@ -205,11 +268,11 @@ const FundraiserDetail = () => {
                                     {formatAmount(fundraiser.goal_amount)}
                                 </span>
                             </div>
-                            {progressPercentage < 100 && (
+                            {animatedProgress < 100 && (
                                 <div className="amount-item">
                                     <span className="amount-label">Залишилось:</span>
                                     <span className="amount-value remaining">
-                                        {formatAmount(fundraiser.goal_amount - fundraiser.current_amount)}
+                                        {formatAmount(fundraiser.goal_amount - animatedAmount)}
                                     </span>
                                 </div>
                             )}
@@ -224,30 +287,62 @@ const FundraiserDetail = () => {
                     <p>{fundraiser.description}</p>
                 </div>
 
-                <div className="fundraiser-contacts">
-                    <h2>Контактна інформація</h2>
-                    {fundraiser.contact_info && (
-                        <p><strong>Контактна особа:</strong> {fundraiser.contact_info}</p>
+                {fundraiser.evidence && (
+                    <div className="fundraiser-evidence">
+                        <h2>Підтвердження</h2>
+                        <p>{fundraiser.evidence}</p>
+                        {fundraiser.evidence_link && (
+                            <a href={fundraiser.evidence_link} target="_blank" rel="noopener noreferrer">
+                                Посилання на докази
+                            </a>
+                        )}
+                    </div>
+                )}
+
+                <div className="donation-section">
+                    <h2>Підтримати збір</h2>
+                    
+                    {!showDonationForm ? (
+                        <button 
+                            onClick={() => setShowDonationForm(true)}
+                            className="donate-button"
+                        >
+                            Зробити внесок
+                        </button>
+                    ) : (
+                        <DonationForm 
+                            onSubmit={handleDonationSubmit}
+                            onCancel={() => setShowDonationForm(false)}
+                        />
                     )}
-                    {fundraiser.phone_number && (
-                        <p><strong>Телефон:</strong> {fundraiser.phone_number}</p>
-                    )}
-                    {fundraiser.email && (
-                        <p><strong>Email:</strong> {fundraiser.email}</p>
+
+                    {donations.length > 0 && (
+                        <div className="donations-list">
+                            <h3>Останні донати</h3>
+                            <ul>
+                                {donations.slice(0, 5).map(donation => (
+                                    <li key={donation.id}>
+                                        <span>{formatAmount(donation.amount)}</span>
+                                        <span className={`status-${donation.status}`}>
+                                            {donation.status === 'success' ? '✓ Успішно' : '✗ Не вдалося'}
+                                        </span>
+                                        <span>{formatDate(donation.created_at)}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                            {donations.length > 5 && (
+                                <button 
+                                    className="show-more"
+                                    onClick={() => navigate(`/fundraiser/${id}/donations`)}
+                                >
+                                    Показати всі
+                                </button>
+                            )}
+                        </div>
                     )}
                 </div>
 
                 <div className="action-buttons">
-                    {fundraiser.donation_link && (
-                        <a 
-                            href={fundraiser.donation_link} 
-                            className="donate-button" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                        >
-                            Підтримати збір
-                        </a>
-                    )}
                     <Link to="/" className="back-button">
                         Назад до всіх зборів
                     </Link>
