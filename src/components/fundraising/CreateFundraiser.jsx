@@ -220,18 +220,19 @@ const CreateFundraiser = () => {
                     </div>
                 </div>
 
-                <div className="form-section">
+                <div className="form-sectionh3">
                     <h3>Контактна інформація</h3>
-                    <div className="form-group">
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={useCustomContact}
-                                onChange={() => setUseCustomContact(!useCustomContact)}
-                            />
-                            Використати інші контактні дані
-                        </label>
-                    </div>
+                    <lable className="checkbox-container">
+                        Використати інші контактні дані
+                        <input
+                              type="checkbox"
+                              id="customContactCheckbox"
+                             checked={useCustomContact}
+                              onChange={() => setUseCustomContact(!useCustomContact)}
+                        />
+                        <span classNAme="checkmark"></span>
+                 </lable>
+                   
 
                     {!useCustomContact ? (
                         <>
@@ -256,7 +257,7 @@ const CreateFundraiser = () => {
                         </>
                     ) : (
                         <>
-                            <div className="form-group">
+                            <div className="form-sectionh3">
                                 <label>Контактна інформація*</label>
                                 <input
                                     type="text"
@@ -271,7 +272,7 @@ const CreateFundraiser = () => {
                     )}
                 </div>
 
-                <div className="form-section">
+                <div className="form-sectionh3">
                     <h3>Фінансова інформація</h3>
                     <div className="form-group">
                         <label>Цільова сума (₴)*</label>
@@ -297,7 +298,7 @@ const CreateFundraiser = () => {
                     </div>
                 </div>
 
-                <div className="form-section">
+                <div className="form-sectionh3">
                     <h3>Докази</h3>
                     <div className="form-group">
                         <label>Опис доказів (опціонально)</label>
@@ -317,7 +318,7 @@ const CreateFundraiser = () => {
                             placeholder="https://..."
                         />
                     </div>
-                    <div className="form-group file-upload">
+                    <div className="form-group-file-upload">
                         <label>Файл доказів (PDF, JPG, PNG до 5MB)</label>
                         <input
                             type="file"
@@ -341,7 +342,7 @@ const CreateFundraiser = () => {
 
                 <div className="form-section">
                     <h3>Зображення для збору</h3>
-                    <div className="form-group file-upload">
+                    <div className="form-group-file-upload">
                         <label>Зображення (JPG, PNG до 10MB)</label>
                         <input
                             type="file"
@@ -368,7 +369,7 @@ const CreateFundraiser = () => {
                         Створити збір
                     </button>
                     <button 
-                        type="button" 
+                        type="reset" 
                         onClick={resetForm} 
                         className="reset-button"
                     >

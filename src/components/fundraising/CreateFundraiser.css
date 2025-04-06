@@ -1,12 +1,85 @@
-/* Base Styles */
-.container#createFundraiser {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2.5rem;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+:root {
+  --current-bg: #ffffff;
+  --current-text: #222222;
+  --header-height: 4rem;
+  --primary-color: #2a9d8f;
+  --primary-hover: #21867a;
+  --radius: 0.5rem;
+  --radius-full: 9999px;
+  --transition: 0.3s ease;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --current-bg: #ffffff;
+  --current-text: #222222;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin: 1rem 0;
+}
+
+.checkbox-container span {
+    margin-right: 10px;
+}
+
+.checkbox-container input[type="checkbox"] {
+    margin: 0;
+    /* Додаткові стилі для чекбокса, якщо потрібно */
+}
+form {
+  background-color: var(--form-bg, #fff);
+  color: var(--current-text);
+  padding: 2rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: background var(--transition), color var(--transition);
+
+  max-width: 500px;        
+  margin: 5rem auto 2rem;  
+  width: 100%;             
+}
+
+form button[type="reset"] {
+  width: 100%;
+  padding: 0.55rem;
+  background-color: var(#969696);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+form button[type="reset"]:hover {
+  background-color: var(#949393);
+}
+
+
+
+.theme-dark .form-section{
+  --form-bg: #1f1f1f;
+  color: var(--current-text);
+  box-shadow: var(--shadow-md);
+}
+
+.fundraiser-form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+body {
+  background-color: #1A202C; /* Темний фон сторінки */
+  color: #EDF2F7; /* Основний колір тексту */
+}
+
+h2, h3 {
+  color: #E2E8F0; /* Світлий колір для заголовків */
 }
 
 /* Form Styles */
@@ -24,24 +97,25 @@
 .input-label {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #2d3748;
+  color: #E2E8F0; /* Світлий текст */
   margin-left: 0.2rem;
 }
 
 .input, .textarea, .select {
   padding: 0.9rem 1.2rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #4A5568; /* Темна рамка */
   border-radius: 10px;
   font-size: 1rem;
   transition: all 0.2s ease;
-  background-color: #f8fafc;
+  background-color: #4A5568; /* Темний фон для полів */
+  color: #EDF2F7; /* Світлий текст */
 }
 
 .input:focus, .textarea:focus, .select:focus {
   outline: none;
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-  background: white;
+  border-color: #63B3ED; /* Блакитний акцент */
+  box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.2);
+  background: #2D3748; /* Темний фон при фокусі */
 }
 
 .textarea {
@@ -66,7 +140,7 @@
 .file-input-label {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #2d3748;
+  color: #676767; /* Світлий текст */
   margin-bottom: 0.5rem;
 }
 
@@ -77,16 +151,16 @@
   text-align: center;
   transition: all 0.2s ease;
   cursor: pointer;
-  border: 2px dashed;
+  border: 2px dashed #4A5568; /* Темна рамка */
 }
 
 .file-input-wrapper.evidence {
-  border-color: #f6ad55;
+  border-color: #F6AD55;
   background-color: rgba(254, 215, 170, 0.2);
 }
 
 .file-input-wrapper.image {
-  border-color: #9f7aea;
+  border-color: #9F7AEA;
   background-color: rgba(214, 188, 250, 0.2);
 }
 
@@ -103,14 +177,14 @@
 
 .file-input-text {
   font-size: 0.95rem;
-  color: #4a5568;
+  color: #EDF2F7; /* Світлий текст */
   margin-bottom: 0.4rem;
   font-weight: 500;
 }
 
 .file-input-hint {
   font-size: 0.8rem;
-  color: #718096;
+  color: #A0AEC0; /* Світло-сірий текст */
 }
 
 .file-input {
@@ -126,8 +200,8 @@
 .file-name {
   margin-top: 0.8rem;
   font-size: 0.9rem;
-  color: #2d3748;
-  background: #edf2f7;
+  color: #2D3748;
+  background: #EDF2F7;
   padding: 0.6rem 1rem;
   border-radius: 8px;
   display: inline-flex;
@@ -137,14 +211,14 @@
 
 .file-name:before {
   content: '✓';
-  color: #38a169;
+  color: #38A169;
   font-weight: bold;
 }
 
 /* Button Styles */
 .button {
-  background: linear-gradient(135deg, #4299e1, #9f7aea);
-  color: white;
+  background: linear-gradient(135deg, #4299E1, #9F7AEA);
+  color: rgb(198, 198, 198);
   padding: 1rem;
   border: none;
   border-radius: 10px;
@@ -157,6 +231,7 @@
   box-shadow: 0 2px 5px rgba(66, 153, 225, 0.3);
 }
 
+
 .button:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(66, 153, 225, 0.4);
@@ -165,7 +240,11 @@
 .button:active {
   transform: translateY(0);
 }
-
+.theme-dark form-group-file-upload{
+  background-color: #2a2a2a;
+  color: #eeeeee;
+  border: 1px solid #444;
+}
 /* Messages */
 .success, .error {
   padding: 1rem;
@@ -177,15 +256,15 @@
 }
 
 .success {
-  background-color: #f0fff4;
-  color: #2f855a;
-  border: 1px solid #c6f6d5;
+  background-color: #2F855A;
+  color: #EDF2F7;
+  border: 1px solid #C6F6D5;
 }
 
 .error {
-  background-color: #fff5f5;
-  color: #c53030;
-  border: 1px solid #fed7d7;
+  background-color: #C53030;
+  color: #EDF2F7;
+  border: 1px solid #FED7D7;
 }
 
 @keyframes fadeIn {
@@ -214,3 +293,6 @@
     font-size: 0.85rem;
   }
 }
+
+
+
