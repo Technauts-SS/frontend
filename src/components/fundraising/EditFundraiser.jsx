@@ -235,7 +235,7 @@ const EditFundraiser = () => {
             {error && <p className="error-message">{error}</p>}
 
             <form onSubmit={handleSubmit} className="fundraiser-form" encType="multipart/form-data">
-                <div className="form-section">
+                <div className="form-sectionh3">
                     <h3>Основна інформація</h3>
                     <div className="form-group">
                         <label>Назва збору*</label>
@@ -275,18 +275,18 @@ const EditFundraiser = () => {
                     </div>
                 </div>
 
-                <div className="form-section">
+                <div className="form-sectionh3">
                     <h3>Контактна інформація</h3>
-                    <div className="form-group">
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={useCustomContact}
-                                onChange={() => setUseCustomContact(!useCustomContact)}
-                            />
-                            Використати інші контактні дані
-                        </label>
-                    </div>
+                    <lable className="checkbox-container">
+                        Використати інші контактні дані
+                        <input
+                              type="checkbox"
+                              id="customContactCheckbox"
+                             checked={useCustomContact}
+                              onChange={() => setUseCustomContact(!useCustomContact)}
+                        />
+                        <span classNAme="checkmark"></span>
+                 </lable>
 
                     {!useCustomContact ? (
                         <>
@@ -336,7 +336,7 @@ const EditFundraiser = () => {
                     )}
                 </div>
 
-                <div className="form-section">
+                <div className="form-sectionh3">
                     <h3>Фінансова інформація</h3>
                     <div className="form-group">
                         <label>Цільова сума (₴)*</label>
@@ -362,7 +362,7 @@ const EditFundraiser = () => {
                     </div>
                 </div>
 
-                <div className="form-section">
+                <div className="form-sectionh3">
                     <h3>Докази</h3>
                     <div className="form-group">
                         <label>Опис доказів (опціонально)</label>
@@ -423,7 +423,7 @@ const EditFundraiser = () => {
                     </div>
                 </div>
 
-                <div className="form-section">
+                <div className="form-sectionh3">
                     <h3>Зображення для збору</h3>
                     <div className="form-group file-upload">
                         <label>Зображення (JPG, PNG до 10MB)</label>

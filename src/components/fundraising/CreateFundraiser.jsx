@@ -180,8 +180,8 @@ const CreateFundraiser = () => {
             {error && <p className="error-message">{error}</p>}
 
             <form onSubmit={handleSubmit} className="fundraiser-form">
-                <div className="form-section">
-                    <h3>Основна інформація</h3>
+                <div className="form-sectionh3">
+                    <b><h3>Основна інформація</h3></b>
                     <div className="form-group">
                         <label>Назва збору*</label>
                         <input
@@ -340,7 +340,7 @@ const CreateFundraiser = () => {
                     </div>
                 </div>
 
-                <div className="form-section">
+                <div className="form-sectionh3">
                     <h3>Зображення для збору</h3>
                     <div className="form-group-file-upload">
                         <label>Зображення (JPG, PNG до 10MB)</label>
