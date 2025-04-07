@@ -2,14 +2,10 @@ import React, { useState, useEffect } from "react";
 import api from '../../api';
 import "./UserProfile.css";
 import Avatar from '../../assets/icons/avatar.png';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import FundraisingCard from '../fundraising/FundraisingCard';
 
-// Визначаємо базовий URL для API
-// Якщо змінна середовища недоступна, використовуємо значення за замовчуванням
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 
-                   window.ENV?.API_URL || 
-                   '/api'; // Значення за замовчуванням
+const API_BASE_URL = import.meta.env?.VITE_API_URL || '/api';
 
 const UserProfile = () => {
   const [user, setUser] = useState({
@@ -20,6 +16,7 @@ const UserProfile = () => {
     social_links: "",
     bio: "",
     image: null,
+    role: "user"
   });
   
   const [userFundraisers, setUserFundraisers] = useState([]);
@@ -27,22 +24,46 @@ const UserProfile = () => {
   const [fundraisersLoading, setFundraisersLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({});
+  const [editForm, setEditForm] = useState({
+    full_name: "",
+    phone_number: "",
+    social_links: "",
+    bio: ""
+  });
   const [imagePreview, setImagePreview] = useState(null);
   const [newImage, setNewImage] = useState(null);
   const navigate = useNavigate();
 
-  // Функція для отримання повного URL зображення
   const getFullImageUrl = (imagePath) => {
     if (!imagePath) return null;
-    
-    // Якщо URL вже повний (починається з http або https)
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
-    
-    // Інакше додаємо базовий URL
     return `${API_BASE_URL}${imagePath}`;
+  };
+
+  const loadFundraisers = async () => {
+    try {
+      setFundraisersLoading(true);
+      const response = await api.get('/fundraisers/my/');
+      console.log('Fundraisers data:', response.data);
+      
+      // Виправлення для обробки пагінованої відповіді
+      const fundraisersData = response.data.results || response.data;
+      
+      if (Array.isArray(fundraisersData)) {
+        setUserFundraisers(fundraisersData);
+      } else {
+        console.error('Invalid data format:', response.data);
+        setUserFundraisers([]);
+      }
+    } catch (error) {
+      console.error('Error loading fundraisers:', error);
+      setError('Не вдалося завантажити збори');
+      setUserFundraisers([]);
+    } finally {
+      setFundraisersLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -58,26 +79,24 @@ const UserProfile = () => {
         const userData = userResponse.data;
         
         setUser({
-          username: userData.username || userData.email?.split('@')[0], // Використовуємо частину email як username, якщо його немає
+          username: userData.username || userData.email?.split('@')[0],
           email: userData.email,
           full_name: userData.full_name,
           phone_number: userData.phone_number,
           social_links: userData.social_links,
           bio: userData.bio,
-          image: userData.image ? getFullImageUrl(userData.image) : null
+          image: userData.image ? getFullImageUrl(userData.image) : null,
+          role: userData.role || 'user'
         });
 
         setEditForm({
-          full_name: userData.full_name,
-          phone_number: userData.phone_number,
-          social_links: userData.social_links,
-          bio: userData.bio
+          full_name: userData.full_name || "",
+          phone_number: userData.phone_number || "",
+          social_links: userData.social_links || "",
+          bio: userData.bio || ""
         });
 
-        setFundraisersLoading(true);
-        const fundraisersResponse = await api.get('/fundraisers/my/');
-        setUserFundraisers(fundraisersResponse.data);
-        setFundraisersLoading(false);
+        await loadFundraisers();
 
       } catch (error) {
         console.error('Error:', error);
@@ -103,13 +122,15 @@ const UserProfile = () => {
       navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
+      setError('Помилка при виході з системи');
     }
   };
 
   const handleDeleteFundraiser = async (fundraiserId) => {
     try {
-      await api.delete(`/fundraisers/${fundraiserId}/delete/`);  
-      setUserFundraisers(prev => prev.filter(f => f.id !== fundraiserId));
+      await api.delete(`/fundraisers/${fundraiserId}/delete/`);
+      // Оновлюємо список після видалення
+      await loadFundraisers();
     } catch (error) {
       console.error('Failed to delete fundraiser:', error);
       setError('Не вдалося видалити збір');
@@ -124,13 +145,11 @@ const UserProfile = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Перевірка розміру файлу (максимум 2MB)
       if (file.size > 2 * 1024 * 1024) {
         setError('Розмір файлу не повинен перевищувати 2MB');
         return;
       }
       
-      // Перевірка типу файлу
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
       if (!allowedTypes.includes(file.type)) {
         setError('Підтримуються тільки формати JPG, JPEG, PNG, GIF');
@@ -152,14 +171,12 @@ const UserProfile = () => {
       setError(null);
       const formData = new FormData();
       
-      // Додаємо текстові поля
       Object.entries(editForm).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
           formData.append(key, value);
         }
       });
       
-      // Додаємо нове зображення, якщо воно було вибране
       if (newImage) {
         formData.append('image', newImage);
       }
@@ -191,6 +208,10 @@ const UserProfile = () => {
     }
   };
 
+  const refreshFundraisers = async () => {
+    await loadFundraisers();
+  };
+
   if (loading) {
     return (
       <div className="profile-container loading">
@@ -204,10 +225,13 @@ const UserProfile = () => {
     return (
       <div className="profile-container error">
         <p className="error-message">{error}</p>
-        <button onClick={() => {
-          setError(null);
-          window.location.reload();
-        }} className="retry-button">
+        <button 
+          onClick={() => {
+            setError(null);
+            window.location.reload();
+          }} 
+          className="retry-button"
+        >
           Спробувати знову
         </button>
       </div>
@@ -243,7 +267,7 @@ const UserProfile = () => {
             <input
               type="text"
               name="full_name"
-              value={editForm.full_name || ''}
+              value={editForm.full_name}
               onChange={handleEditChange}
             />
           </div>
@@ -253,7 +277,7 @@ const UserProfile = () => {
             <input
               type="text"
               name="phone_number"
-              value={editForm.phone_number || ''}
+              value={editForm.phone_number}
               onChange={handleEditChange}
               placeholder="+380XXXXXXXXX"
             />
@@ -264,7 +288,7 @@ const UserProfile = () => {
             <input
               type="text"
               name="social_links"
-              value={editForm.social_links || ''}
+              value={editForm.social_links}
               onChange={handleEditChange}
               placeholder="https://..."
             />
@@ -274,7 +298,7 @@ const UserProfile = () => {
             <label>Про себе</label>
             <textarea
               name="bio"
-              value={editForm.bio || ''}
+              value={editForm.bio}
               onChange={handleEditChange}
               rows="4"
             />
@@ -284,12 +308,15 @@ const UserProfile = () => {
             <button onClick={handleSaveProfile} className="save-button">
               Зберегти зміни
             </button>
-            <button onClick={() => {
-              setIsEditing(false);
-              setImagePreview(null);
-              setNewImage(null);
-              setError(null);
-            }} className="cancel-button">
+            <button 
+              onClick={() => {
+                setIsEditing(false);
+                setImagePreview(null);
+                setNewImage(null);
+                setError(null);
+              }} 
+              className="cancel-button"
+            >
               Скасувати
             </button>
           </div>
@@ -314,6 +341,14 @@ const UserProfile = () => {
                 <span className="detail-value">{user.username}</span>
               </div>
             )}
+
+            <div className="detail-item">
+              <span className="detail-label">Роль:</span>
+              <span className="detail-value">
+                {user.role === 'admin' ? 'Адміністратор' : 
+                 user.role === 'moderator' ? 'Модератор' : 'Користувач'}
+              </span>
+            </div>
 
             {user.phone_number && (
               <div className="detail-item">
@@ -351,15 +386,33 @@ const UserProfile = () => {
             >
               Редагувати профіль
             </button>
-            <Link to="/create-fundraiser" className="action-button create-fundraiser-button">
+            <Link 
+              to="/create-fundraiser" 
+              className="action-button create-fundraiser-button"
+            >
               Створити збір
             </Link>
+            
+            {(user.role === 'admin' || user.role === 'moderator') && (
+              <div className="moderator-actions">
+                {user.role === 'admin' && (
+                  <Link to="/admin" className="action-button admin-button">
+                    Адмін панель
+                  </Link>
+                )}
+                <Link to="/moderation" className="action-button moderation-button">
+                  Панель модератора
+                </Link>
+              </div>
+            )}
           </div>
         </>
       )}
 
       <div className="user-fundraisers-section">
-        <h3>Мої збори</h3>
+        <div className="fundraisers-header">
+          <h3>Мої збори</h3>
+        </div>
         
         {fundraisersLoading ? (
           <div className="loading-container">

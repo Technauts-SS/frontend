@@ -14,6 +14,8 @@ import FundraiserDetail from "./components/fundraising/FundraiserDetail";
 import UserProfile from "./components/user/UserProfile";
 import EditUserProfile from "./components/user/EditUserProfile";
 import VolunteerAuth from "./components/user/VolunteerAuth";
+import AdminPanel from './components/user/admin/AdminPanel';
+import ModerationPanel from './components/user/moderator/ModerationPanel';
 
 import "./App.css";
 
@@ -44,6 +46,8 @@ function App() {
               <Route path="/login" element={<VolunteerAuth isLogin={true} />} />
               <Route path="/register" element={<VolunteerAuth isLogin={false} />} />
               <Route path="/fundraiser/:id/edit" element={<EditFundraiser />} />
+              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/moderation" element={<ModerationPanel />} />
             </Routes>
           </div>
         </Router>

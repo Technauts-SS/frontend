@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Navigate } from 'react-router-dom'; // Додано Navigate
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api';
 import './VolunteerAuth.css';
@@ -7,9 +7,18 @@ import './VolunteerAuth.css';
 const VolunteerAuth = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { user, isAuthenticated, login } = useAuth(); // Додано login
   const isLogin = location.pathname === '/login';
 
+  if (isAuthenticated) {
+    if (user?.role === 'admin') {
+      return <Navigate to="/admin" />;
+    } else if (user?.role === 'moderator') {
+      return <Navigate to="/moderation" />;
+    }
+    return <Navigate to="/profile" />;
+  }
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
