@@ -11,7 +11,9 @@ const CreateFundraiser = () => {
         donation_link: '',
         evidence: '',
         evidence_link: '',
-        category: 'other'
+        category: 'other',
+        creator_name: '',
+        contact_info: ''
     });
     const [evidenceFile, setEvidenceFile] = useState(null);
     const [image, setImage] = useState(null);
@@ -25,7 +27,6 @@ const CreateFundraiser = () => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         
-        // Redirect to login if no token
         if (!token) {
             navigate('/login', { state: { from: '/create-fundraiser' } });
             return;
@@ -37,10 +38,15 @@ const CreateFundraiser = () => {
                     headers: { 'Authorization': `Token ${token}` }
                 });
                 setUserData(response.data);
+                // Set default contact info
+                setFormData(prev => ({
+                    ...prev,
+                    creator_name: response.data.full_name || response.data.username,
+                    contact_info: response.data.email + (response.data.phone_number ? `, ${response.data.phone_number}` : '')
+                }));
             } catch (err) {
                 console.error('Failed to fetch user data:', err);
                 if (err.response?.status === 401) {
-                    // Remove invalid token and redirect to login
                     localStorage.removeItem('token');
                     navigate('/login', { state: { from: '/create-fundraiser' } });
                 } else {
@@ -62,18 +68,32 @@ const CreateFundraiser = () => {
     };
 
     const handleFileChange = (e) => {
-        setEvidenceFile(e.target.files[0]);
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                setError('Розмір файлу доказів не повинен перевищувати 5MB');
+                return;
+            }
+            setEvidenceFile(file);
+        }
     };
 
     const handleImageChange = (e) => {
-        setImage(e.target.files[0]);
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                setError('Розмір зображення не повинен перевищувати 10MB');
+                return;
+            }
+            setImage(file);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
         const parsedGoalAmount = parseFloat(formData.goal_amount);
-        if (isNaN(parsedGoalAmount) ){
+        if (isNaN(parsedGoalAmount)) {
             setError('Цільова сума повинна бути числом');
             return;
         }
@@ -83,12 +103,17 @@ const CreateFundraiser = () => {
         }
 
         const data = new FormData();
+        
         Object.entries(formData).forEach(([key, value]) => {
-            if (value) data.append(key, value);
+            if (value !== null && value !== undefined) {
+                data.append(key, value);
+            }
         });
+        
         data.append('goal_amount', parsedGoalAmount);
         
         if (!useCustomContact) {
+            data.append('creator_name', userData.full_name || userData.username);
             data.append('contact_info', userData.email);
             if (userData.phone_number) {
                 data.append('contact_info', `${userData.email}, ${userData.phone_number}`);
@@ -133,7 +158,9 @@ const CreateFundraiser = () => {
             donation_link: '',
             evidence: '',
             evidence_link: '',
-            category: 'other'
+            category: 'other',
+            creator_name: userData?.full_name || userData?.username || '',
+            contact_info: userData?.email + (userData?.phone_number ? `, ${userData.phone_number}` : '')
         });
         setEvidenceFile(null);
         setImage(null);
@@ -149,7 +176,6 @@ const CreateFundraiser = () => {
     }
 
     if (!userData) {
-        // This should theoretically never be reached due to the redirect
         return (
             <div className="container error">
                 <p>Будь ласка, увійдіть в систему для створення збору</p>
@@ -165,7 +191,7 @@ const CreateFundraiser = () => {
 
     return (
         <div className="container" id="createFundraiser">
-            <h2>Створити новий збір</h2>
+            <h2 class="text">Створити новий збір</h2>
             {success && (
                 <div className="success-message">
                     <p>Збір успішно створено!</p>
@@ -179,7 +205,7 @@ const CreateFundraiser = () => {
             )}
             {error && <p className="error-message">{error}</p>}
 
-            <form onSubmit={handleSubmit} className="fundraiser-form">
+            <form onSubmit={handleSubmit} className="fundraiser-form" encType="multipart/form-data">
                 <div className="form-section">
                     <h3>Основна інформація</h3>
                     <div className="form-group">
@@ -222,16 +248,15 @@ const CreateFundraiser = () => {
 
                 <div className="form-section">
                     <h3>Контактна інформація</h3>
-                    <div className="form-group">
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={useCustomContact}
-                                onChange={() => setUseCustomContact(!useCustomContact)}
-                            />
-                            Використати інші контактні дані
-                        </label>
-                    </div>
+                    <label className="checkbox-container">
+                        Використати інші контактні дані
+                        <input
+                            type="checkbox"
+                            checked={useCustomContact}
+                            onChange={() => setUseCustomContact(!useCustomContact)}
+                        />
+                        <span className="checkmark"></span>
+                    </label>
 
                     {!useCustomContact ? (
                         <>
@@ -239,7 +264,7 @@ const CreateFundraiser = () => {
                                 <label>Ім'я організатора</label>
                                 <input
                                     type="text"
-                                    value={userData.full_name || userData.username}
+                                    value={formData.creator_name}
                                     readOnly
                                     className="readonly"
                                 />
@@ -248,7 +273,7 @@ const CreateFundraiser = () => {
                                 <label>Контакти</label>
                                 <input
                                     type="text"
-                                    value={userData.email + (userData.phone_number ? `, ${userData.phone_number}` : '')}
+                                    value={formData.contact_info}
                                     readOnly
                                     className="readonly"
                                 />
@@ -256,6 +281,16 @@ const CreateFundraiser = () => {
                         </>
                     ) : (
                         <>
+                            <div className="form-group">
+                                <label>Ім'я організатора*</label>
+                                <input
+                                    type="text"
+                                    name="creator_name"
+                                    value={formData.creator_name || ''}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
                             <div className="form-group">
                                 <label>Контактна інформація*</label>
                                 <input
@@ -317,48 +352,100 @@ const CreateFundraiser = () => {
                             placeholder="https://..."
                         />
                     </div>
-                    <div className="form-group file-upload">
+                    <div className="form-group file-upload-group">
                         <label>Файл доказів (PDF, JPG, PNG до 5MB)</label>
-                        <input
-                            type="file"
-                            onChange={handleFileChange}
-                            accept=".pdf,.jpg,.jpeg,.png"
-                        />
-                        {evidenceFile && (
-                            <div className="file-info">
-                                Вибрано: {evidenceFile.name}
-                                <button 
-                                    type="button" 
-                                    onClick={() => setEvidenceFile(null)}
-                                    className="remove-file"
-                                >
-                                    ×
-                                </button>
+                        {evidenceFile ? (
+                            <div className="file-info new-file">
+                                <div className="file-preview">
+                                    <span className="file-link">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M14 2V8H20" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M16 13H8" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M16 17H8" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M10 9H9H8" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                        <span>{evidenceFile.name}</span>
+                                    </span>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setEvidenceFile(null)}
+                                        className="remove-button"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M18 6L6 18" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M6 6L18 18" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
+                        ) : (
+                            <label className="file-upload-label">
+                                <div className="file-upload-design">
+                                    <svg className="file-upload-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M7 10V14H17V10H19V14C19 15.1 18.1 16 17 16H7C5.9 16 5 15.1 5 14V10H7ZM12 15L16 11H13V5H11V11H8L12 15ZM12 4C12.5523 4 13 3.55228 13 3C13 2.44772 12.5523 2 12 2C11.4477 2 11 2.44772 11 3C11 3.55228 11.4477 4 12 4Z" fill="currentColor"/>
+                                    </svg>
+                                    <span className="file-upload-text">
+                                        <span className="main-text">Завантажити файл доказів</span>
+                                        <span className="hint-text">PDF, JPG, PNG (макс. 5MB)</span>
+                                    </span>
+                                </div>
+                                <input
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    className="file-upload-input"
+                                />
+                            </label>
                         )}
                     </div>
                 </div>
 
                 <div className="form-section">
                     <h3>Зображення для збору</h3>
-                    <div className="form-group file-upload">
+                    <div className="form-group file-upload-group">
                         <label>Зображення (JPG, PNG до 10MB)</label>
-                        <input
-                            type="file"
-                            onChange={handleImageChange}
-                            accept="image/*"
-                        />
-                        {image && (
-                            <div className="file-info">
-                                Вибрано: {image.name}
-                                <button 
-                                    type="button" 
-                                    onClick={() => setImage(null)}
-                                    className="remove-file"
-                                >
-                                    ×
-                                </button>
+                        {image ? (
+                            <div className="file-info new-file">
+                                <div className="file-preview">
+                                    <span className="file-link">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M5 3H19C20.1046 3 21 3.89543 21 5V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3Z" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M21 15L16 10L5 21" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M16 10L19 7L21 9L16 14" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                        <span>{image.name}</span>
+                                    </span>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setImage(null)}
+                                        className="remove-button"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M18 6L6 18" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M6 6L18 18" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
+                        ) : (
+                            <label className="file-upload-label">
+                                <div className="file-upload-design">
+                                    <svg className="picture-icon" xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 24 24">
+                                        <path d="m12,21c0,.553-.448,1-1,1h-6c-2.757,0-5-2.243-5-5V5C0,2.243,2.243,0,5,0h12c2.757,0,5,2.243,5,5v6c0,.553-.448,1-1,1s-1-.447-1-1v-6c0-1.654-1.346-3-3-3H5c-1.654,0-3,1.346-3,3v6.959l2.808-2.808c1.532-1.533,4.025-1.533,5.558,0l5.341,5.341c.391.391.391,1.023,0,1.414-.195.195-.451.293-.707.293s-.512-.098-.707-.293l-5.341-5.341c-.752-.751-1.976-.752-2.73,0l-4.222,4.222v2.213c0,1.654,1.346,3,3,3h6c.552,0,1,.447,1,1ZM15,3.5c1.654,0,3,1.346,3,3s-1.346,3-3,3-3-1.346-3-3,1.346-3,3-3Zm0,2c-.551,0-1,.448-1,1s.449,1,1,1,1-.448,1-1-.449-1-1-1Zm8,12.5h-3v-3c0-.553-.448-1-1-1s-1,.447-1,1v3h-3c-.552,0-1,.447-1,1s.448,1,1,1h3v3c0,.553.448,1,1,1s1-.447,1-1v-3h3c.552,0,1-.447,1-1s-.448-1-1-1Z"/>
+                                    </svg>
+                                    <span className="file-upload-text">
+                                        <span className="main-text">Завантажити зображення</span>
+                                        <span className="hint-text">JPG, PNG (макс. 10MB)</span>
+                                    </span>
+                                </div>
+                                <input
+                                    type="file"
+                                    onChange={handleImageChange}
+                                    accept="image/*"
+                                    className="file-upload-input"
+                                />
+                            </label>
                         )}
                     </div>
                 </div>
@@ -368,7 +455,7 @@ const CreateFundraiser = () => {
                         Створити збір
                     </button>
                     <button 
-                        type="button" 
+                        type="reset" 
                         onClick={resetForm} 
                         className="reset-button"
                     >
