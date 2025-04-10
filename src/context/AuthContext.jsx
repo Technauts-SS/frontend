@@ -31,25 +31,25 @@ export const AuthProvider = ({ children }) => {
     validateToken();
   }, []);
 
-  // AuthContext.js
   const login = async (email, password) => {
     try {
       const response = await api.post('/users/login/', { email, password });
-      const { token, username, email: userEmail, full_name, role } = response.data; // Додаємо role
-
+      const { token, user_id, email: userEmail, full_name, role, image } = response.data;
+  
       const user = {
-        username,
+        id: user_id,
         email: userEmail,
         full_name,
-        role // Зберігаємо роль
+        role,
+        image
       };
-
+  
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-
+  
       setUser(user);
       setIsAuthenticated(true);
-
+  
       return user;
     } catch (error) {
       console.error('Login Error:', error);

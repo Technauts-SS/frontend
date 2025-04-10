@@ -11,13 +11,26 @@ const FundraiserDetail = () => {
     const navigate = useNavigate();
     const [fundraiser, setFundraiser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [fetchError, setFetchError] = useState(null);
     const [isOwner, setIsOwner] = useState(false);
     const [imageError, setImageError] = useState(false);
     const [showDonationForm, setShowDonationForm] = useState(false);
     const [donations, setDonations] = useState([]);
     const [animatedAmount, setAnimatedAmount] = useState(0);
     const [animatedProgress, setAnimatedProgress] = useState(0);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState('');
+    const [isReporting, setIsReporting] = useState(false);
+    const [reportError, setReportError] = useState(null);
+    const [canReport, setCanReport] = useState(true);
+    const [nextReportTime, setNextReportTime] = useState(null);
+
+    const REPORT_REASONS = [
+        "Недостовірна інформація",
+        "Порушення правил платформи",
+        "Шахрайство",
+        "Інше"
+    ];
 
     const getDefaultImage = (category) => {
         const categoryMap = {
@@ -31,16 +44,34 @@ const FundraiserDetail = () => {
     };
 
     const getImageUrl = () => {
-        if (imageError || !fundraiser?.image) return getDefaultImage(fundraiser?.category);
-        if (fundraiser.image.startsWith('http')) return fundraiser.image;
-        if (fundraiser.image.startsWith('/media/')) return `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}${fundraiser.image}`;
-        return fundraiser.image;
+        try {
+            if (imageError || !fundraiser?.image) return getDefaultImage(fundraiser?.category);
+            if (fundraiser.image.startsWith('http')) return fundraiser.image;
+            if (fundraiser.image.startsWith('/media/')) {
+                return `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}${fundraiser.image}`;
+            }
+            return fundraiser.image;
+        } catch (error) {
+            return getDefaultImage('other');
+        }
     };
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
         const options = { day: 'numeric', month: 'long', year: 'numeric' };
         return new Date(dateString).toLocaleDateString('uk-UA', options);
+    };
+
+    const formatDateTime = (dateString) => {
+        if (!dateString) return '';
+        const options = { 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        return new Date(dateString).toLocaleString('uk-UA', options);
     };
 
     const formatAmount = (amount) => {
@@ -62,57 +93,71 @@ const FundraiserDetail = () => {
         return categories[category] || category;
     };
 
+    const checkReportAvailability = async () => {
+        if (!localStorage.getItem('token')) return;
+        
+        try {
+            const response = await api.get(`/reports/check/?fundraiser=${id}`);
+            if (response.data.exists) {
+                setCanReport(false);
+                setNextReportTime(new Date(response.data.next_available));
+            } else {
+                setCanReport(true);
+                setNextReportTime(null);
+            }
+        } catch (error) {
+            console.error('Error checking report availability:', error);
+            // Залишаємо можливість створити скаргу у випадку помилки
+            setCanReport(true);
+        }
+    };
+
     const fetchFundraiserData = async () => {
         try {
             setLoading(true);
-            setError(null);
-            
-            // Verify token exists
-            const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error('Необхідно увійти в систему');
-            }
+            setFetchError(null);
 
-            const [fundraiserRes, donationsRes] = await Promise.all([
-                api.get(`/fundraisers/${id}/`),
-                api.get(`/fundraisers/${id}/donations/`).catch(() => ({ data: [] }))
-            ]);
+            const fundraiserRes = await api.get(`/fundraisers/${id}/`);
             
             if (!fundraiserRes.data) {
                 throw new Error('Збір не знайдено');
             }
 
             setFundraiser(fundraiserRes.data);
-            setDonations(donationsRes.data || []);
             
-            // Animation
-            animateValue(animatedAmount, fundraiserRes.data.current_amount, setAnimatedAmount);
-            
+            if (localStorage.getItem('token')) {
+                try {
+                    const donationsRes = await api.get(`/fundraisers/${id}/donations/`);
+                    setDonations(donationsRes.data || []);
+                } catch (donationError) {
+                    console.error('Error fetching donations:', donationError);
+                    setDonations([]);
+                }
+            }
+
+            animateValue(0, fundraiserRes.data.current_amount, setAnimatedAmount);
             const newProgress = fundraiserRes.data.goal_amount > 0 ? 
                 Math.min(100, (fundraiserRes.data.current_amount / fundraiserRes.data.goal_amount) * 100) : 0;
-            animateValue(animatedProgress, newProgress, setAnimatedProgress);
+            animateValue(0, newProgress, setAnimatedProgress);
             
             const userId = localStorage.getItem('userId');
             setIsOwner(userId && userId === fundraiserRes.data.creator?.id?.toString());
         } catch (error) {
-            console.error('Error fetching data:', error);
+            console.error('Error fetching fundraiser data:', error);
             const errorMessage = error.response?.data?.detail || 
                                error.response?.data?.message || 
                                error.message ||
-                               'Не вдалося завантажити дані';
-            setError(errorMessage);
+                               'Не вдалося завантажити дані збору';
+            setFetchError(errorMessage);
             toast.error(errorMessage);
-            
-            if (error.response?.status === 401) {
-                localStorage.removeItem('token');
-                navigate('/login');
-            }
         } finally {
             setLoading(false);
         }
     };
 
     const animateValue = (start, end, setValue) => {
+        if (start === end) return;
+        
         const duration = 500;
         const startTime = performance.now();
         
@@ -130,8 +175,66 @@ const FundraiserDetail = () => {
         requestAnimationFrame(step);
     };
 
+    const handleReportSubmit = async () => {
+        if (!reportReason) {
+            toast.error('Будь ласка, оберіть причину скарги');
+            return;
+        }
+    
+        try {
+            setIsReporting(true);
+            setReportError(null);
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                navigate('/login');
+                toast.info('Будь ласка, увійдіть для відправки скарги');
+                return;
+            }
+    
+            const response = await api.post('/reports/', {
+                fundraiser: parseInt(id),
+                reason: reportReason
+            });
+            
+            toast.success('Скаргу успішно надіслано!');
+            setShowReportModal(false);
+            setReportReason('');
+            
+            // Оновлюємо стан після успішного створення скарги
+            setCanReport(false);
+            const nextTime = new Date();
+            nextTime.setHours(nextTime.getHours() + 24);
+            setNextReportTime(nextTime);
+        } catch (error) {
+            console.error('Помилка при відправці:', error);
+            
+            let errorMessage = 'Не вдалося надіслати скаргу';
+            
+            if (error.response?.data) {
+                if (error.response.data.detail) {
+                    errorMessage = error.response.data.detail;
+                } else if (error.response.data.non_field_errors) {
+                    errorMessage = error.response.data.non_field_errors.join(', ');
+                } else if (error.response.data.next_available_time) {
+                    errorMessage = `Ви вже створили скаргу. Наступна скарга можлива після ${formatDateTime(new Date(error.response.data.next_available_time))}`;
+                    setNextReportTime(new Date(error.response.data.next_available_time));
+                    setCanReport(false);
+                }
+            }
+    
+            toast.error(errorMessage, {
+                autoClose: 5000,
+                closeButton: true,
+            });
+        } finally {
+            setIsReporting(false);
+        }
+    };
+
     useEffect(() => {
         fetchFundraiserData();
+        checkReportAvailability();
         
         const handleFundraiserUpdate = (e) => {
             if (e.detail.id === id) {
@@ -155,6 +258,7 @@ const FundraiserDetail = () => {
             const token = localStorage.getItem('token');
             if (!token) {
                 navigate('/login');
+                toast.info('Будь ласка, увійдіть для здійснення донату');
                 return;
             }
 
@@ -175,42 +279,25 @@ const FundraiserDetail = () => {
                 }
             }));
         } catch (error) {
-            console.error('Donation error:', error);
+            console.error('Error submitting donation:', error);
             const errorMessage = error.response?.data?.detail || 
                                error.response?.data?.message || 
                                'Помилка при здійсненні донату';
             toast.error(errorMessage);
-            
-            if (error.response?.status === 401) {
-                localStorage.removeItem('token');
-                navigate('/login');
-            }
         }
     };
 
     const handleDelete = async () => {
         if (window.confirm("Ви впевнені, що хочете видалити цей збір?")) {
             try {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    navigate('/login');
-                    return;
-                }
-
                 await api.delete(`/fundraisers/${id}/`);
                 toast.success('Збір успішно видалено');
                 navigate('/');
             } catch (error) {
-                console.error('Помилка видалення:', error);
+                console.error('Error deleting fundraiser:', error);
                 const errorMessage = error.response?.data?.detail || 
-                                   error.response?.data?.message || 
-                                   'Не вдалося видалити збір';
+                                   'Не вдалося видалити збір. Спробуйте пізніше';
                 toast.error(errorMessage);
-                
-                if (error.response?.status === 401) {
-                    localStorage.removeItem('token');
-                    navigate('/login');
-                }
             }
         }
     };
@@ -224,11 +311,11 @@ const FundraiserDetail = () => {
         );
     }
 
-    if (error) {
+    if (fetchError) {
         return (
             <div className="error-container">
-                <p className="error-message">{error}</p>
-                {error.includes('увійти') ? (
+                <p className="error-message">{fetchError}</p>
+                {fetchError.includes('увійти') ? (
                     <button 
                         onClick={() => navigate('/login')}
                         className="login-button"
@@ -280,22 +367,43 @@ const FundraiserDetail = () => {
                 <div className="fundraiser-meta">
                     <div className="title-section">
                         <h1>{fundraiser.title}</h1>
-                        {isOwner && (
-                            <div className="owner-actions">
-                                <Link 
-                                    to={`/fundraiser/${id}/edit`}
-                                    className="edit-button"
-                                >
-                                    Редагувати
-                                </Link>
-                                <button 
-                                    onClick={handleDelete}
-                                    className="delete-button"
-                                >
-                                    Видалити
-                                </button>
-                            </div>
-                        )}
+                        <div className="owner-actions">
+                            {isOwner ? (
+                                <>
+                                    <Link 
+                                        to={`/fundraiser/${id}/edit`}
+                                        className="edit-button"
+                                    >
+                                        Редагувати
+                                    </Link>
+                                    <button 
+                                        onClick={handleDelete}
+                                        className="delete-button"
+                                    >
+                                        Видалити
+                                    </button>
+                                </>
+                            ) : (
+                                localStorage.getItem('token') && (
+                                    canReport ? (
+                                        <button 
+                                            onClick={() => setShowReportModal(true)}
+                                            className="report-button"
+                                        >
+                                            Поскаржитися
+                                        </button>
+                                    ) : (
+                                        <button 
+                                            className="report-button disabled"
+                                            disabled
+                                            title={`Ви вже створили скаргу. Наступна скарга можлива ${nextReportTime ? `після ${formatDateTime(nextReportTime)}` : 'через 24 години'}`}
+                                        >
+                                            Поскаржитися
+                                        </button>
+                                    )
+                                )
+                            )}
+                        </div>
                     </div>
 
                     <div className="fundraiser-creator">
@@ -380,6 +488,7 @@ const FundraiserDetail = () => {
                             onClick={() => {
                                 if (!localStorage.getItem('token')) {
                                     navigate('/login');
+                                    toast.info('Будь ласка, увійдіть для здійснення донату');
                                 } else {
                                     setShowDonationForm(true);
                                 }
@@ -428,6 +537,63 @@ const FundraiserDetail = () => {
                     </Link>
                 </div>
             </div>
+
+            {/* Report Modal */}
+            {showReportModal && (
+                <div className="modal-overlay">
+                    <div className="report-modal">
+                        <h3>Поскаржитися на збір</h3>
+                        <p>Оберіть причину:</p>
+                        
+                        <select
+                            value={reportReason}
+                            onChange={(e) => setReportReason(e.target.value)}
+                            disabled={isReporting}
+                            className="report-select"
+                        >
+                            <option value="">-- Оберіть причину --</option>
+                            {REPORT_REASONS.map((r) => (
+                                <option key={r} value={r}>{r}</option>
+                            ))}
+                        </select>
+
+                        {/* Error display in modal */}
+                        {reportError && (
+                            <div className="report-error">
+                                <p>{reportError.response?.data?.detail || 
+                                    reportError.message || 
+                                    'Сталася помилка при відправці скарги'}</p>
+                                {reportError.response?.data?.created_at && (
+                                    <p>Час останньої скарги: {formatDateTime(reportError.response.data.created_at)}</p>
+                                )}
+                                {reportError.response?.data?.next_available_time && (
+                                    <p>Наступна можлива скарга: {formatDateTime(reportError.response.data.next_available_time)}</p>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="modal-actions">
+                            <button
+                                onClick={handleReportSubmit}
+                                disabled={!reportReason || isReporting}
+                                className="submit-button"
+                            >
+                                {isReporting ? 'Надсилання...' : 'Надіслати'}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowReportModal(false);
+                                    setReportError(null);
+                                }}
+                                disabled={isReporting}
+                                className="cancel-button"
+                            >
+                                Скасувати
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

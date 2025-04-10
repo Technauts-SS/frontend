@@ -47,13 +47,23 @@ export const authApi = {
 
 // Campaigns API
 export const campaignsApi = {
-  getAll: (params) => api.get('campaigns/', { params }),
-  getForModeration: () => api.get('campaigns/moderation_list/'),
-  getById: (id) => api.get(`campaigns/${id}/`),
-  create: (campaignData) => api.post('campaigns/', campaignData),
-  update: (id, campaignData) => api.patch(`campaigns/${id}/`, campaignData),
-  approve: (id) => api.post(`campaigns/${id}/approve/`),
-  reject: (id) => api.post(`campaigns/${id}/reject/`),
+  getAll: (params) => api.get('fundraisers/', { params }),
+  getForModeration: () => api.get('fundraisers/moderation/campaigns/'),
+  getById: (id) => api.get(`fundraisers/${id}/`),
+  create: (campaignData) => api.post('fundraisers/', campaignData),
+  update: (id, campaignData) => api.patch(`fundraisers/${id}/`, campaignData),
+  approve: (id) => api.post(`fundraisers/${id}/approve/`),
+  reject: (id) => api.post(`fundraisers/${id}/reject/`),
+};
+
+// Reports API
+export const reportsApi = {
+  create: (reportData) => api.post('reports/', reportData),
+  getAll: () => api.get('reports/'),
+  updateStatus: (reportId, status, resolutionNote) =>
+    api.patch(`reports/${reportId}/update_status/`, { status, resolution_note: resolutionNote }),
+  getForModeration: () => api.get('reports/for_moderation/'),
+  check: (fundraiserId) => api.get('reports/check/', { params: { fundraiser: fundraiserId } }),
 };
 
 // Users API (для адмінів/модераторів)
