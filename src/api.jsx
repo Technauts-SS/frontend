@@ -5,6 +5,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // Додаємо таймаут 10 секунд
 });
 
 // Додаємо токен до кожного запиту
@@ -21,18 +22,23 @@ api.interceptors.request.use(
   }
 );
 
-// Обробка помилок
+// Покращена обробка помилок
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Якщо токен протух або не валідний
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem('user');
+      window.location.href = '/login?session_expired=true';
     }
     if (error.response?.status === 403) {
-      // Якщо немає прав доступу
-      alert('У вас недостатньо прав для цієї дії');
+      if (error.response.data?.detail) {
+        return Promise.reject(new Error(error.response.data.detail));
+      }
+      return Promise.reject(new Error('У вас недостатньо прав для цієї дії'));
+    }
+    if (error.response?.status === 429) {
+      return Promise.reject(new Error('Забагато запитів. Спробуйте пізніше'));
     }
     return Promise.reject(error);
   }
@@ -43,6 +49,7 @@ export const authApi = {
   login: (email, password) => api.post('users/login/', { email, password }),
   register: (userData) => api.post('users/', userData),
   getMe: () => api.get('users/me/'),
+  refreshToken: () => api.post('users/token/refresh/'),
 };
 
 // Campaigns API
@@ -52,34 +59,55 @@ export const campaignsApi = {
   getById: (id) => api.get(`fundraisers/${id}/`),
   create: (campaignData) => api.post('fundraisers/', campaignData),
   update: (id, campaignData) => api.patch(`fundraisers/${id}/`, campaignData),
-  approve: (id) => api.post(`fundraisers/${id}/approve/`),
-  reject: (id) => api.post(`fundraisers/${id}/reject/`),
+  approve: (id, resolutionNote = '') => 
+    api.patch(`fundraisers/${id}/moderate/`, { status: 'approved', resolution_note: resolutionNote }),
+  reject: (id, resolutionNote = '') => 
+    api.patch(`fundraisers/${id}/moderate/`, { status: 'rejected', resolution_note: resolutionNote }),
+  pause: (id, resolutionNote = '') => 
+    api.patch(`fundraisers/${id}/moderate/`, { status: 'paused', resolution_note: resolutionNote }),
+  getReports: (id) => api.get(`fundraisers/${id}/reports/`),
+  checkReports: (id) => api.get(`fundraisers/${id}/check_reports/`),
 };
 
 // Reports API
 export const reportsApi = {
   create: (reportData) => api.post('reports/', reportData),
-  getAll: () => api.get('reports/'),
-  updateStatus: (reportId, status, resolutionNote) =>
-    api.patch(`reports/${reportId}/update_status/`, { status, resolution_note: resolutionNote }),
+  getAll: (params) => api.get('reports/', { params }),
+  getById: (id) => api.get(`reports/${id}/`),
+  updateStatus: (id, status, resolutionNote = '') =>
+    api.patch(`reports/${id}/`, { status, resolution_note: resolutionNote }),
   getForModeration: () => api.get('reports/for_moderation/'),
   check: (fundraiserId) => api.get('reports/check/', { params: { fundraiser: fundraiserId } }),
+  getCampaignReports: (campaignId) => api.get(`reports/?fundraiser=${campaignId}`),
+  getRecentApproved: () => api.get('reports/recent_approved/'),
+  checkReportsThreshold: (id) => api.get(`reports/check_threshold/?fundraiser=${id}`),
 };
 
-// Users API (для адмінів/модераторів)
+// Users API
 export const usersApi = {
-  getAll: () => api.get('users/'),
+  getAll: (params) => api.get('users/', { params }),
+  getById: (id) => api.get(`users/${id}/`),
+  update: (id, userData) => api.patch(`users/${id}/`, userData),
   makeAdmin: (userId) => api.post(`users/${userId}/make_admin/`),
   makeModerator: (userId) => api.post(`users/${userId}/make_moderator/`),
+  getActivity: (userId) => api.get(`users/${userId}/activity/`),
 };
 
 // Donations API
 export const donationsApi = {
   create: (donationData) => api.post('donations/', donationData),
-  getUserDonations: () => api.get('donations/'),
+  getUserDonations: () => api.get('donations/my/'),
+  getCampaignDonations: (campaignId) => api.get(`donations/?campaign=${campaignId}`),
+  verify: (donationId) => api.post(`donations/${donationId}/verify/`),
 };
 
-// Допоміжні функції для роботи з ролями
+// Допоміжні функції
+export const utilsApi = {
+  getStats: () => api.get('utils/stats/'),
+  getModerationStats: () => api.get('utils/moderation_stats/'),
+};
+
+// Робота з ролями
 export const checkRole = {
   isAdmin: () => {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -88,6 +116,10 @@ export const checkRole = {
   isModerator: () => {
     const user = JSON.parse(localStorage.getItem('user'));
     return ['moderator', 'admin'].includes(user?.role);
+  },
+  isOwner: (campaignCreatorId) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    return user?.id === campaignCreatorId;
   },
 };
 

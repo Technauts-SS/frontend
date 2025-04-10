@@ -14,9 +14,10 @@ const FundraisingCard = ({
     isOwner = false,
     createdAt,
     showFullInfo = false,
-    status = 'active',
+    status = '',
     location,
-    urgency
+    urgency,
+    complaintsCount = 0 // 👈 додано
 }) => {
     const [displayAmount, setDisplayAmount] = useState(currentAmount);
     const [progress, setProgress] = useState(0);
@@ -66,15 +67,19 @@ const FundraisingCard = ({
         const options = { day: 'numeric', month: 'short', year: 'numeric' };
         return new Date(dateString).toLocaleDateString('uk-UA', options);
     };
+    
+    const computedStatus = (status === 'active' && complaintsCount >= 3) ? 'paused' : status;
 
     const getStatusBadge = () => {
         const statusMap = {
-            'completed': { text: 'Завершено', class: 'completed' },
-            'active': { text: 'Активна', class: 'active' },
+            'draft': { text: 'Чернетка', class: 'draft' },
+            'pending': { text: 'На модерації', class: 'pending' },
+            'active': { text: 'Активний', class: 'active' },
             'paused': { text: 'Призупинено', class: 'paused' },
+            'completed': { text: 'Завершено', class: 'completed' },
             'cancelled': { text: 'Скасовано', class: 'cancelled' }
         };
-        const statusInfo = statusMap[status] || { text: '', class: '' };
+        const statusInfo = statusMap[computedStatus] || { text: '', class: '' };
         return statusInfo.text ? (
             <div className={`status-badge ${statusInfo.class}`}>
                 {statusInfo.text}
@@ -209,7 +214,7 @@ const FundraisingCard = ({
                         Детальніше
                     </Link>
                     
-                    {donationLink && status === 'active' && (
+                    {donationLink && computedStatus === 'active' && (
                         <a 
                             href={donationLink} 
                             className="donate-button" 

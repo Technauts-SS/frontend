@@ -255,6 +255,23 @@
   gap: 8px;
   width: 100%;
 }
+.status-badge.pending {
+  background-color: #ffc107;
+  color: #333;
+}
+.status-badge.rejected {
+  background-color: #dc3545;
+  color: #fff;
+}
+.status-badge.approved {
+  background-color: #28a745;
+  color: #fff;
+}
+.status-badge.draft {
+  background-color: #f4f4f4; /* Можеш налаштувати колір фону */
+  color: #333; /* Колір тексту */
+  border: 1px solid #ccc; /* Окружність для беджу */
+}
 
 /* Mobile Styles */
 @media (max-width: 480px) {

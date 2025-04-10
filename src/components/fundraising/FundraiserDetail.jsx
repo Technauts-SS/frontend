@@ -16,6 +16,7 @@ const FundraiserDetail = () => {
     const [imageError, setImageError] = useState(false);
     const [showDonationForm, setShowDonationForm] = useState(false);
     const [donations, setDonations] = useState([]);
+    const [donationsLoading, setDonationsLoading] = useState(false);
     const [animatedAmount, setAnimatedAmount] = useState(0);
     const [animatedProgress, setAnimatedProgress] = useState(0);
     const [showReportModal, setShowReportModal] = useState(false);
@@ -24,6 +25,7 @@ const FundraiserDetail = () => {
     const [reportError, setReportError] = useState(null);
     const [canReport, setCanReport] = useState(true);
     const [nextReportTime, setNextReportTime] = useState(null);
+    const [reportsCount, setReportsCount] = useState(0);
 
     const REPORT_REASONS = [
         "Недостовірна інформація",
@@ -93,6 +95,17 @@ const FundraiserDetail = () => {
         return categories[category] || category;
     };
 
+    const getStatusLabel = (status) => {
+        const statuses = {
+            pending: "На розгляді",
+            active: "Активний",
+            paused: "Призупинений",
+            completed: "Завершений",
+            cancelled: "Скасований"
+        };
+        return statuses[status] || status;
+    };
+
     const checkReportAvailability = async () => {
         if (!localStorage.getItem('token')) return;
         
@@ -107,8 +120,40 @@ const FundraiserDetail = () => {
             }
         } catch (error) {
             console.error('Error checking report availability:', error);
-            // Залишаємо можливість створити скаргу у випадку помилки
             setCanReport(true);
+        }
+    };
+
+    const checkReportsThreshold = async () => {
+        try {
+            const response = await api.get(`/reports/count/?fundraiser=${id}`);
+            setReportsCount(response.data.count);
+            
+            if (response.data.count >= 3 && fundraiser?.status === 'active') {
+                await api.patch(`/fundraisers/${id}/moderate/`, {
+                    status: 'paused',
+                    resolution_note: 'Автоматичне призупинення через кількість скарг'
+                });
+                toast.warning('Збір призупинено через кількість скарг');
+                fetchFundraiserData();
+            }
+        } catch (error) {
+            console.error('Error checking reports threshold:', error);
+        }
+    };
+
+    const fetchDonations = async () => {
+        setDonationsLoading(true);
+        try {
+            const donationsRes = await api.get(`/fundraisers/${id}/donations/`);
+            const donationsData = donationsRes.data || [];
+            setDonations(Array.isArray(donationsData) ? donationsData : []);
+        } catch (error) {
+            console.error('Error fetching donations:', error);
+            toast.error('Не вдалося завантажити список донатів');
+            setDonations([]);
+        } finally {
+            setDonationsLoading(false);
         }
     };
 
@@ -126,13 +171,7 @@ const FundraiserDetail = () => {
             setFundraiser(fundraiserRes.data);
             
             if (localStorage.getItem('token')) {
-                try {
-                    const donationsRes = await api.get(`/fundraisers/${id}/donations/`);
-                    setDonations(donationsRes.data || []);
-                } catch (donationError) {
-                    console.error('Error fetching donations:', donationError);
-                    setDonations([]);
-                }
+                await fetchDonations();
             }
 
             animateValue(0, fundraiserRes.data.current_amount, setAnimatedAmount);
@@ -142,6 +181,8 @@ const FundraiserDetail = () => {
             
             const userId = localStorage.getItem('userId');
             setIsOwner(userId && userId === fundraiserRes.data.creator?.id?.toString());
+
+            await checkReportsThreshold();
         } catch (error) {
             console.error('Error fetching fundraiser data:', error);
             const errorMessage = error.response?.data?.detail || 
@@ -201,7 +242,7 @@ const FundraiserDetail = () => {
             setShowReportModal(false);
             setReportReason('');
             
-            // Оновлюємо стан після успішного створення скарги
+            await checkReportsThreshold();
             setCanReport(false);
             const nextTime = new Date();
             nextTime.setHours(nextTime.getHours() + 24);
@@ -261,7 +302,7 @@ const FundraiserDetail = () => {
                 toast.info('Будь ласка, увійдіть для здійснення донату');
                 return;
             }
-
+    
             const response = await api.post('/donations/', { 
                 ...donationData, 
                 campaign: id 
@@ -269,15 +310,10 @@ const FundraiserDetail = () => {
             
             toast.success('Донат успішно здійснено!');
             setShowDonationForm(false);
-            await fetchFundraiserData();
             
-            window.dispatchEvent(new CustomEvent('fundraiserUpdated', {
-                detail: { 
-                    id,
-                    currentAmount: response.data.campaign.current_amount,
-                    progress: (response.data.campaign.current_amount / response.data.campaign.goal_amount) * 100
-                }
-            }));
+            await fetchFundraiserData();
+            await fetchDonations();
+            
         } catch (error) {
             console.error('Error submitting donation:', error);
             const errorMessage = error.response?.data?.detail || 
@@ -300,6 +336,88 @@ const FundraiserDetail = () => {
                 toast.error(errorMessage);
             }
         }
+    };
+
+    const renderStatusBadge = () => {
+        if (!fundraiser) return null;
+        
+        const statusClass = `status-badge ${fundraiser.status}`;
+        return (
+            <div className={statusClass}>
+                {getStatusLabel(fundraiser.status)}
+            </div>
+        );
+    };
+
+    const renderCompletionDetails = () => {
+        if (fundraiser?.status !== 'completed') return null;
+
+        return (
+            <div className="completion-section">
+                <h2>Збір завершено</h2>
+                <div className="completion-details">
+                    <p>
+                        <strong>Дата завершення:</strong> {formatDate(fundraiser.ends_at)}
+                    </p>
+                    <p>
+                        <strong>Результат:</strong> Зібрано {formatAmount(fundraiser.current_amount)} з цільових {formatAmount(fundraiser.goal_amount)} (
+                        {Math.round((fundraiser.current_amount / fundraiser.goal_amount) * 100)}%)
+                    </p>
+                </div>
+            </div>
+        );
+    };
+
+    const renderDonationsList = () => {
+        if (!Array.isArray(donations)) {
+            console.error('Donations is not an array:', donations);
+            return <p className="no-donations">Помилка завантаження донатів</p>;
+        }
+
+        if (donationsLoading) {
+            return (
+                <div className="loading-container">
+                    <div className="loading-spinner small"></div>
+                    <p>Завантаження донатів...</p>
+                </div>
+            );
+        }
+
+        if (donations.length === 0) {
+            return <p className="no-donations">Ще немає донатів. Будьте першим!</p>;
+        }
+
+        const displayedDonations = donations.slice(0, 5);
+
+        return (
+            <ul className="donations-list">
+                {displayedDonations.map(donation => {
+                    if (!donation || typeof donation !== 'object') {
+                        return null;
+                    }
+                    
+                    return (
+                        <li key={donation.id || Math.random()} className="donation-item">
+                            <div className="donation-amount">
+                                {formatAmount(donation.amount || 0)}
+                            </div>
+                            <div className={`donation-status status-${donation.status || 'pending'}`}>
+                                {donation.status === 'success' ? '✓ Успішно' : 
+                                 donation.status === 'pending' ? '⏳ В очікуванні' : '✗ Не вдалося'}
+                            </div>
+                            <div className="donation-date">
+                                {formatDate(donation.created_at)}
+                            </div>
+                            {donation.user && (
+                                <div className="donation-user">
+                                    {donation.user.full_name || donation.user.username || 'Анонім'}
+                                </div>
+                            )}
+                        </li>
+                    );
+                })}
+            </ul>
+        );
     };
 
     if (loading) {
@@ -362,6 +480,12 @@ const FundraiserDetail = () => {
                     <div className="category-badge">
                         {getCategoryLabel(fundraiser.category)}
                     </div>
+                    {reportsCount > 0 && (
+                        <div className="reports-badge" title={`Кількість скарг: ${reportsCount}`}>
+                            ⚠️ {reportsCount}
+                        </div>
+                    )}
+                    {renderStatusBadge()}
                 </div>
 
                 <div className="fundraiser-meta">
@@ -415,6 +539,13 @@ const FundraiserDetail = () => {
                         <span className="meta-label">Дата створення:</span>
                         <span>{formatDate(fundraiser.created_at)}</span>
                     </div>
+
+                    {fundraiser.ends_at && (
+                        <div className="fundraiser-date">
+                            <span className="meta-label">Дата завершення:</span>
+                            <span>{formatDate(fundraiser.ends_at)}</span>
+                        </div>
+                    )}
 
                     <div className="fundraiser-progress">
                         <div className="progress-container">
@@ -480,54 +611,54 @@ const FundraiserDetail = () => {
                     </div>
                 )}
 
+                {renderCompletionDetails()}
+
                 <div className="donation-section">
                     <h2>Підтримати збір</h2>
                     
-                    {!showDonationForm ? (
-                        <button 
-                            onClick={() => {
-                                if (!localStorage.getItem('token')) {
-                                    navigate('/login');
-                                    toast.info('Будь ласка, увійдіть для здійснення донату');
-                                } else {
-                                    setShowDonationForm(true);
-                                }
-                            }}
-                            className="donate-button"
-                        >
-                            Зробити внесок
-                        </button>
-                    ) : (
-                        <DonationForm 
-                            onSubmit={handleDonationSubmit}
-                            onCancel={() => setShowDonationForm(false)}
-                            campaignId={id}
-                        />
-                    )}
-
-                    {donations.length > 0 && (
-                        <div className="donations-list">
-                            <h3>Останні донати</h3>
-                            <ul>
-                                {donations.slice(0, 5).map(donation => (
-                                    <li key={donation.id}>
-                                        <span>{formatAmount(donation.amount)}</span>
-                                        <span className={`status-${donation.status}`}>
-                                            {donation.status === 'success' ? '✓ Успішно' : '✗ Не вдалося'}
-                                        </span>
-                                        <span>{formatDate(donation.created_at)}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            {donations.length > 5 && (
+                    {fundraiser.status === 'active' ? (
+                        <>
+                            {!showDonationForm ? (
                                 <button 
-                                    className="show-more"
-                                    onClick={() => navigate(`/fundraiser/${id}/donations`)}
+                                    onClick={() => {
+                                        if (!localStorage.getItem('token')) {
+                                            navigate('/login');
+                                            toast.info('Будь ласка, увійдіть для здійснення донату');
+                                        } else {
+                                            setShowDonationForm(true);
+                                        }
+                                    }}
+                                    className="donate-button"
                                 >
-                                    Показати всі
+                                    Зробити внесок
                                 </button>
+                            ) : (
+                                <DonationForm 
+                                    onSubmit={handleDonationSubmit}
+                                    onCancel={() => setShowDonationForm(false)}
+                                    campaignId={id}
+                                />
                             )}
-                        </div>
+
+                            <div className="donations-container">
+                                <h3>Останні донати</h3>
+                                {renderDonationsList()}
+                                {donations.length > 5 && (
+                                    <button 
+                                        className="show-more"
+                                        onClick={() => navigate(`/fundraiser/${id}/donations`)}
+                                    >
+                                        Показати всі донати
+                                    </button>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <p className="campaign-not-active">
+                            Цей збір {fundraiser.status === 'completed' ? 'вже завершено' : 
+                                     fundraiser.status === 'paused' ? 'тимчасово призупинено' : 
+                                     'не активний'}. Донати не приймаються.
+                        </p>
                     )}
                 </div>
 
@@ -538,7 +669,6 @@ const FundraiserDetail = () => {
                 </div>
             </div>
 
-            {/* Report Modal */}
             {showReportModal && (
                 <div className="modal-overlay">
                     <div className="report-modal">
@@ -557,7 +687,6 @@ const FundraiserDetail = () => {
                             ))}
                         </select>
 
-                        {/* Error display in modal */}
                         {reportError && (
                             <div className="report-error">
                                 <p>{reportError.response?.data?.detail || 
