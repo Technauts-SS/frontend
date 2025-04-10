@@ -40,7 +40,18 @@ body, .theme-dark {
 color: var(--current-text);
 background-color: var(--current-bg);
 }
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
+.auth-card {
+  max-width: 550px; /* Зменшуємо максимальну ширину картки з 450px */
+  width: 100%;
+  margin: 2rem auto;
+  padding: 1.5rem;
+}
 /* Можна додати інші елементи, щоб змінити колір тексту */
 h1, h2, h3, p, span {
 color: var(--current-text);
@@ -60,13 +71,196 @@ color: var(--current-text);
   transition: background var(--transition), color var(--transition);
 
   max-width: 500px;        
-  margin: 5rem auto 2rem;  
+  margin: 4rem auto 2rem;  
   width: 100%;             
 }
 
 h3{
   color:#21867a
 }
+/* Стилі для кнопки вибору файлу */
+/* Кастомні стилі для кнопки */
+
+
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+form button[type="submit"] {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.submit-button {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.5rem !important;
+  height: 2.25rem;
+  font-size: 0.9rem !important;
+}
+
+form button[type="submit"]:hover {
+  background-color: var(--primary-hover);
+}
+
+form button[type="reset"] {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #6a6a6a; 
+  color: rgb(254, 252, 252);
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.reset-button {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.5rem !important;
+  height: 2.25rem;
+  font-size: 0.9rem !important;
+}
+
+form button[type="reset"]:hover {
+  background-color: #524f4f; 
+}
+
+
+/* Кастомний стиль для кнопки завантаження файлів */
+.file-upload-group {
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 1rem;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload-group:hover {
+  border-color: var(--primary-color);
+  background-color: rgba(42, 157, 143, 0.05);
+}
+
+/* Іконка завантаження */
+.upload-icon {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 10px;
+  display: block;
+  color: var(--primary-color);
+  fill: var(--primary-color);
+}
+
+/* Стиль для заголовка */
+.file-upload-title {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* Стиль для підзаголовка */
+.file-format-info {
+  display: block;
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+/* Приховуємо стандартний input */
+.file-upload-input {
+  display: none;
+}
+
+/* Стиль для попереднього перегляду */
+.image-preview-container {
+  margin-top: 15px;
+}
+
+.image-preview {
+  max-width: 120px;
+  max-height: 120px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.picture-icon{
+  width: 26px;
+  height: 26px;
+}
+/* Стилі для темної теми */
+.theme-dark .file-upload-group {
+  background-color: #1f1f1f;
+  border-color: #444;
+}
+
+.theme-dark .file-upload-group:hover {
+  border-color: var(--primary-color);
+  background-color: rgba(42, 157, 143, 0.1);
+}
+
+.theme-dark .file-upload-title {
+  color: #f0f0f0;
+}
+
+.theme-dark .file-format-info {
+  color: #aaa;
+}
+/* Стилі для контейнера з попереднім переглядом фото */
+.image-preview-container {
+  margin-top: 8px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.image-preview {
+  max-width: 80px;
+  max-height: 80px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color, #ccc);
+}
+
+/* Підіймаємо текст на кнопці "Зареєструватися" */
+.submit-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px; /* Фіксована висота для кнопки */
+  font-size: 0.9rem;
+  line-height: 1;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+
 .theme-dark .fundraiser-form .file-info .form-group .file-upload {
   --form-bg: #1f1f1f;
   color: var(--current-text);
@@ -74,10 +268,11 @@ h3{
 }
 
 /* INPUT STYLES */
-form input,
-form textarea,
-form select {
+.form-group input,
+.form-group textarea,
+.form select {
   width: 100%;
+  max-width: 100%;
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
   border-radius: var(--radius);
@@ -86,6 +281,7 @@ form select {
   color: var(--input-text, var(--current-text)); /* <-- використовуємо змінну */
   transition: background var(--transition), color var(--transition), border var(--transition);
 }
+
 
 .theme-dark {
   --form-bg: #1f1f1f;
@@ -129,23 +325,6 @@ form textarea::placeholder {
 }
 
 /* SUBMIT BUTTON */
-form button[type="submit"] {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 0.5rem;
-}
-
-form button[type="submit"]:hover {
-  background-color: var(--primary-hover);
-}
 
 
 /* Для полів вводу (input) і текстових областей (textarea) */
@@ -170,7 +349,11 @@ form button[type="submit"]:hover {
   background-color: #21867a;
 }
 
-
+.auth-title{
+  text-align: center;
+  margin-bottom: 0px;
+  margin-top:30px;
+}
 
 /* Для тексту помилок */
 .theme-dark .error-message {

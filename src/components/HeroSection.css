@@ -7,6 +7,11 @@
   padding: 0;
   box-sizing: border-box;
 }
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
 
 body {
   font-family: 'Inter', sans-serif;
@@ -20,7 +25,8 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   text-align: left;
-  padding: 40px 20px;
+  padding: 0 20px 40px 20px; 
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -138,7 +144,7 @@ body {
 }
 
 .hero-buttons .support {
-  background-color: #A1D6CB;
+  background-color: #2a9d8f;
   color: #fff;
 }
 
@@ -169,7 +175,7 @@ body {
 }
 
 .theme-dark .hero-buttons .support {
-  background-color: #A1D6CB;
+  background-color: #2a9d8f;
 }
 
 /* Анімації */

@@ -59,19 +59,6 @@
     margin-top: 2rem;
 }
 
-.submit-button {
-    background: #4CAF50;
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 4px;
-    font-size: 1rem;
-    cursor: pointer;
-}
-
-.submit-button:hover {
-    background: #3e8e41;
-}
 
 .cancel-button {
     background: #f44336;
