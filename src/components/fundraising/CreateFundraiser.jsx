@@ -370,7 +370,7 @@ const CreateFundraiser = () => {
                                     <button 
                                         type="button" 
                                         onClick={() => setEvidenceFile(null)}
-                                        className="remove-button"
+                                        className="remove-info-button"
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M18 6L6 18" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -419,7 +419,7 @@ const CreateFundraiser = () => {
                                     <button 
                                         type="button" 
                                         onClick={() => setImage(null)}
-                                        className="remove-button"
+                                        className="remove-info-button"
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M18 6L6 18" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

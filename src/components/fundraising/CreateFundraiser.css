@@ -289,27 +289,28 @@ textarea {
   border-color: #D1D5DB;
 }
 
-.remove-button {
+.remove-info-button {
   background-color: #F3F4F6;
   color: #4B5563;
   border: 1px solid #E5E7EB;
-  padding: 12px 24px;
+  padding: 6px 12px;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  flex: 1;
-  min-width: 200px;
+  min-width: 154; 
+  width: fit-content;
 }
 
-.remove-button:hover {
+
+.remove-info-button:hover {
   background-color: #E5E7EB;
   border-color: #D1D5DB;
 }
 
 
-.remove-button svg {
+.remove-info-button svg {
   width: 1rem;
   height: 1rem;
 }
@@ -329,33 +330,6 @@ textarea {
   height: auto;
   border-radius: 0.375rem;
   border: 1px solid #e5e7eb;
-}
-
-.remove-image-button {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.375rem 0.75rem;
-  background-color: rgba(239, 68, 68, 0.9);
-  color: white;
-  border: none;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.remove-image-button:hover {
-  background-color: #ef4444;
-}
-
-.remove-image-button svg {
-  width: 0.875rem;
-  height: 0.875rem;
 }
 
 
@@ -531,12 +505,12 @@ textarea {
   color: #818cf8;
 }
 
-.theme-dark .remove-button {
+.theme-dark .remove-info-button {
   background-color: #422;
   color: #ff6b6b;
 }
 
-.theme-dark .remove-button:hover {
+.theme-dark .remove-info-button:hover {
   background-color: #522;
 }
 
