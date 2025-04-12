@@ -84,31 +84,43 @@ const ModerationPanel = () => {
       toast.info('Будь ласка, увійдіть для виконання цієї дії');
       return;
     }
-
+  
     try {
       setLoading(true);
-
+  
       if (selectedTab === 'campaigns' || selectedTab === 'under_review') {
-        await api.patch(`fundraisers/${item.id}/moderate/`, {
-          status: action === 'approve' ? 'approved' : 'rejected',
+        let newStatus;
+        if (action === 'approve') {
+          newStatus = 'cancelled';
+        } else {
+          newStatus = item.previous_status || 'active';
+        }
+  
+        const response = await api.patch(`fundraisers/${item.id}/moderate/`, {
+          status: newStatus,
           resolution_note: resolutionNote
         });
-
-        setCampaignsData(prev => prev.filter(c => c.id !== item.id));
-        setStats(prev => ({ 
-          ...prev, 
-          campaigns: prev.campaigns - 1,
-          pendingCampaigns: prev.pendingCampaigns - (item.status === 'pending' ? 1 : 0)
-        }));
+  
+        // Force refresh of both reports and campaigns
+        await Promise.all([
+          api.get('reports/for_moderation/'),
+          api.get('fundraisers/moderation/campaigns/')
+        ]);
       } else {
-        await api.patch(`reports/${item.id}/update_status/`, {
+        const response = await api.patch(`reports/${item.id}/update_status/`, {
           status: action === 'approve' ? 'approved' : 'rejected',
           resolution_note: resolutionNote
         });
-
-        await fetchAllData();
+  
+        // Explicitly refresh the campaign data if this was a report approval
+        if (action === 'approve') {
+          await api.get(`fundraisers/${item.fundraiser}/`);
+        }
       }
-
+  
+      // Full data refresh
+      await fetchAllData();
+      
       toast.success(`Дія "${action === 'approve' ? 'схвалено' : 'відхилено'}" успішно виконана`);
       setResolutionNote('');
       setCurrentItemId(null);
@@ -119,7 +131,6 @@ const ModerationPanel = () => {
       setLoading(false);
     }
   };
-
   const viewCampaignDetails = (campaignId) => {
     navigate(`/fundraiser/${campaignId}`);
   };
@@ -235,14 +246,14 @@ const ModerationPanel = () => {
                       onClick={() => handleAction(report, 'approve')}
                       disabled={loading}
                     >
-                      Схвалити скаргу
+                      Підтверджені порушення
                     </button>
                     <button
                       className="reject"
                       onClick={() => handleAction(report, 'reject')}
                       disabled={loading}
                     >
-                      Відхилити скаргу
+                      Відхилені (без порушень)
                     </button>
                   </div>
                 </>
@@ -296,13 +307,13 @@ const ModerationPanel = () => {
           className={selectedTab === 'approved' ? 'active' : ''}
           onClick={() => handleTabChange('approved')}
         >
-          Схвалені скарги <span>{stats.approved}</span>
+          Підтверджені скарги <span>{stats.approved}</span>
         </button>
         <button
           className={selectedTab === 'rejected' ? 'active' : ''}
           onClick={() => handleTabChange('rejected')}
         >
-          Відхилені скарги <span>{stats.rejected}</span>
+          Без порушень <span>{stats.rejected}</span>
         </button>
         <button
           className={selectedTab === 'under_review' ? 'active' : ''}
