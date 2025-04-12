@@ -72,20 +72,30 @@ const FundraisingCard = ({
 
     const getStatusBadge = () => {
         const statusMap = {
-            'draft': { text: 'Чернетка', class: 'draft' },
-            'pending': { text: 'На модерації', class: 'pending' },
-            'active': { text: 'Активний', class: 'active' },
-            'paused': { text: 'Призупинено', class: 'paused' },
-            'completed': { text: 'Завершено', class: 'completed' },
-            'cancelled': { text: 'Скасовано', class: 'cancelled' }
+          'pending': { text: 'На модерації', class: 'pending' },
+          'active': { text: 'Активний', class: 'active' },
+          'paused': { 
+            text: 'Призупинено', 
+            class: 'paused',
+            tooltip: 'Збір призупинено через численні скарги' 
+          },
+          'completed': { text: 'Завершено', class: 'completed' },
+          'cancelled': { 
+            text: 'Скасовано', 
+            class: 'cancelled',
+            tooltip: 'Збір скасовано модератором' 
+          }
         };
-        const statusInfo = statusMap[computedStatus] || { text: '', class: '' };
-        return statusInfo.text ? (
-            <div className={`status-badge ${statusInfo.class}`}>
-                {statusInfo.text}
-            </div>
-        ) : null;
-    };
+        
+        const statusInfo = statusMap[status] || {};
+        if (!statusInfo.text) return null;
+        
+        return (
+          <div className={`status-badge ${statusInfo.class}`} title={statusInfo.tooltip}>
+            {statusInfo.text}
+          </div>
+        );
+      };
 
     const getUrgencyBadge = () => {
         if (!urgency) return null;

@@ -78,57 +78,63 @@ const ModerationPanel = () => {
   };
 
   const handleAction = async (item, action) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      toast.info('Будь ласка, увійдіть для виконання цієї дії');
-      return;
-    }
-  
     try {
       setLoading(true);
-  
-      if (selectedTab === 'campaigns' || selectedTab === 'under_review') {
-        let newStatus;
-        if (action === 'approve') {
-          newStatus = 'cancelled';
-        } else {
-          newStatus = item.previous_status || 'active';
-        }
-  
-        const response = await api.patch(`fundraisers/${item.id}/moderate/`, {
+      
+      if (selectedTab === 'under_review' || selectedTab === 'campaigns') {
+        // Для кампаній
+        const newStatus = action === 'approve' ? 'active' : 'cancelled';
+        
+        await api.patch(`fundraisers/${item.id}/update_status/`, {
           status: newStatus,
           resolution_note: resolutionNote
         });
-  
-        // Force refresh of both reports and campaigns
-        await Promise.all([
-          api.get('reports/for_moderation/'),
-          api.get('fundraisers/moderation/campaigns/')
-        ]);
+        
       } else {
+        // Для скарг
         const response = await api.patch(`reports/${item.id}/update_status/`, {
           status: action === 'approve' ? 'approved' : 'rejected',
           resolution_note: resolutionNote
         });
   
-        // Explicitly refresh the campaign data if this was a report approval
+        // Якщо скаргу схвалено (підтверджені порушення)
         if (action === 'approve') {
-          await api.get(`fundraisers/${item.fundraiser}/`);
+          // Отримуємо деталі збору, щоб дізнатись його поточний статус
+          const fundraiserResponse = await api.get(`fundraisers/${item.fundraiser}/`);
+          const fundraiser = fundraiserResponse.data;
+          
+          // Якщо збір активний або паузований, змінюємо статус на скасований
+          if (fundraiser.status === 'active' || fundraiser.status === 'paused') {
+            await api.patch(`fundraisers/${item.fundraiser}/update_status/`, {
+              status: 'cancelled',
+              resolution_note: `Скасовано модератором через підтверджену скаргу #${item.id}`
+            });
+            console.log(`Збір #${item.fundraiser} скасовано через підтверджену скаргу #${item.id}`);
+          }
+          
+          // Додатково можна перевірити кількість скарг (якщо ви хочете зберегти цю логіку)
+          const reportsResponse = await api.get(`reports/count/?fundraiser=${item.fundraiser}`);
+          if (reportsResponse.data.count >= 3 && fundraiser.status === 'active') {
+            // Якщо з якоїсь причини збір не був скасований вище, призупиняємо його
+            await api.patch(`fundraisers/${item.fundraiser}/update_status/`, {
+              status: 'paused'
+            });
+            console.log(`Збір #${item.fundraiser} призупинено через кількість скарг: ${reportsResponse.data.count}`);
+          }
         }
       }
   
-      // Full data refresh
+      // Оновлюємо дані
       await fetchAllData();
+      toast.success(`Статус успішно оновлено`);
       
-      toast.success(`Дія "${action === 'approve' ? 'схвалено' : 'відхилено'}" успішно виконана`);
-      setResolutionNote('');
-      setCurrentItemId(null);
     } catch (error) {
-      console.error('Error performing action:', error);
-      toast.error(`Помилка: ${error.response?.data?.detail || error.message}`);
+      console.error('Помилка при оновленні статусу:', error);
+      toast.error(`Помилка: ${error.response?.data?.error || error.message}`);
     } finally {
       setLoading(false);
+      setResolutionNote('');
+      setCurrentItemId(null);
     }
   };
   const viewCampaignDetails = (campaignId) => {

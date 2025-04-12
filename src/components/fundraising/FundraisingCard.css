@@ -272,7 +272,20 @@
   color: #333; /* Колір тексту */
   border: 1px solid #ccc; /* Окружність для беджу */
 }
+.status-badge.paused {
+  background-color: #ff9800;
+  color: white;
+}
 
+.status-badge.cancelled {
+  background-color: #f44336;
+  color: white;
+}
+
+.status-badge.completed {
+  background-color: #4caf50;
+  color: white;
+}
 /* Mobile Styles */
 @media (max-width: 480px) {
   .fundraising-card {
