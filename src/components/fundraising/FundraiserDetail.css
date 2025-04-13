@@ -16,7 +16,12 @@
   --box-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-
+.donation-section, .fundraiser-evidence{
+  background-color: whitesmoke;
+}
+.theme-dark .donation-section, .fundraiser-evidence {
+  background-color: #1e323c86;
+}
 .fundraiser-detail {
   max-width: 1200px;
   margin: 2rem auto;
@@ -367,10 +372,8 @@
 .fundraiser-evidence {
   margin-bottom: 2.5rem;
   padding: 1.5rem;
-  background: var(--bg-light);
   border-radius: var(--border-radius);
 }
-
 .fundraiser-evidence a {
   color: var(--primary-color);
   text-decoration: none;
@@ -389,7 +392,6 @@
 .donation-section {
   margin: 3rem 0;
   padding: 2.5rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
 }
