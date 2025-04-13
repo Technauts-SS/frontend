@@ -1,12 +1,5 @@
 .filter-container {
-    max-width: 800px;
     margin: 0 auto 30px;
-    padding: 0 20px;
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    border-radius: 12px;
-    background: #ffffff;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
   }
   
   .filter-header {
@@ -28,7 +21,7 @@
   }
   
   .filter-count {
-    background: #4a6fa5;
+    background: #2a9d8f;
     color: white;
     padding: 2px 8px;
     border-radius: 10px;
@@ -88,7 +81,7 @@
   }
   
   .filter-select:focus {
-    border-color: #4a6fa5;
+    border-color: #2a9d8f;
     box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
     outline: none;
   }
@@ -125,14 +118,14 @@
     font-size: 14px;
     font-weight: 500;
     color: white;
-    background: #4a6fa5;
+    background: #2a9d8f;
     border: none;
     cursor: pointer;
     transition: all 0.3s ease;
   }
   
   .reset-btn:hover {
-    background: #3a5a8f;
+    background: #2a9d8f;
     transform: translateY(-1px);
   }
   
@@ -142,45 +135,22 @@
     transform: none !important;
   }
   
-  .filter-container.dark {
-    background: #2a2d35;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  }
-  
-  .filter-container.dark .filter-header {
+
+  .dark .filter-header {
     border-color: rgba(255, 255, 255, 0.05);
   }
   
-  .filter-container.dark h3 {
+  .dark h3 {
     color: #f2f2f2;
   }
   
-  .filter-container.dark .filter-label {
+ .dark .filter-label {
     color: #ddd;
   }
   
-  .filter-container.dark .filter-select {
-    background: #3a3d47;
-    border-color: #555;
-    color: #f1f1f1;
-  }
+
   
-  .filter-container.dark .filter-select:hover {
-    border-color: #7a9cc6;
-  }
-  
-  .filter-container.dark .filter-select:focus {
-    border-color: #4b83c0;
-    box-shadow: 0 0 0 3px rgba(122, 156, 198, 0.3);
-  }
-  
-  .filter-container.dark .reset-btn {
-    background: #6AA84F;
-  }
-  
-  .filter-container.dark .reset-btn:hover {
-    background: #5a9840;
-  }
+
   
   @media (max-width: 768px) {
     .filter-container {
