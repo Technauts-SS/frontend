@@ -12,7 +12,7 @@ const categories = [
   { icon: SocialCare, title: "Соціальна допомога", path: "social" },
   { icon: Books, title: "Освіта та наука", path: "education" },
   { icon: Ecology, title: "Екологія та тварини", path: "ecology" },
-  { icon: Other, title: "Інше", path: "" },
+  { icon: Other, title: "Інше", path: "other" },
 ];
 
 const HeroSection = () => {
