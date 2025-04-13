@@ -1,5 +1,4 @@
 /* FundraiserDetail.css */
-
 :root {
   --primary-color: #2a9d8f;
   --primary-hover: #21867a;
@@ -16,12 +15,8 @@
   --box-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.donation-section, .fundraiser-evidence{
-  background-color: whitesmoke;
-}
-.theme-dark .donation-section, .fundraiser-evidence {
-  background-color: #1e323c86;
-}
+
+/* Base Styles */
 .fundraiser-detail {
   max-width: 1200px;
   margin: 2rem auto;
@@ -50,6 +45,7 @@
   position: relative;
   border-radius: var(--border-radius);
   overflow: hidden;
+  box-shadow: var(--box-shadow);
 }
 
 .fundraiser-image {
@@ -57,8 +53,12 @@
   height: 350px;
   object-fit: cover;
   display: block;
+  transition: var(--transition);
 }
 
+.fundraiser-image:hover {
+  transform: scale(1.02);
+}
 
 .fundraiser-image.fallback {
   object-fit: contain;
@@ -79,6 +79,23 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
   z-index: 2;
+}
+
+.reports-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(230, 111, 81, 0.9);
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 2;
+}
+
+.status-badge {
+  position: absolute;
 }
 
 /* Meta Information */
@@ -111,7 +128,8 @@
 }
 
 .edit-button, 
-.delete-button {
+.delete-button,
+.report-button {
   padding: 0.6rem 1.2rem;
   border: none;
   border-radius: var(--border-radius);
@@ -132,6 +150,7 @@
 .edit-button:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
+  box-shadow: var(--box-shadow-hover);
 }
 
 .delete-button {
@@ -142,6 +161,23 @@
 .delete-button:hover {
   background: #d45a3f;
   transform: translateY(-2px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.report-button {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+.report-button:hover {
+  background: #ffcdd2;
+  transform: translateY(-2px);
+}
+
+.report-button.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .fundraiser-creator,
@@ -181,7 +217,6 @@
   background: linear-gradient(90deg, var(--primary-color), #4cc9b7);
   transition: width 0.6s cubic-bezier(0.65, 0, 0.35, 1);
   position: relative;
-  overflow: hidden;
 }
 
 .progress-bar::after {
@@ -198,98 +233,6 @@
     rgba(255, 255, 255, 0.1) 100%
   );
   animation: shimmer 2s infinite;
-}
-
-/* Стилі для скарг */
-.report-button {
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #ef9a9a;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-left: 10px;
-  transition: background-color 0.3s;
-  font-size: 14px;
-}
-
-.report-button:hover {
-  background-color: #ffcdd2;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.report-modal {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.report-modal h3 {
-  margin-top: 0;
-  color: #c62828;
-}
-
-.report-select {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.submit-button {
-  background-color: #c62828;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.submit-button:hover:not(:disabled) {
-  background-color: #b71c1c;
-}
-
-.submit-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.cancel-button {
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.cancel-button:hover {
-  background-color: #e0e0e0;
 }
 
 @keyframes shimmer {
@@ -351,85 +294,27 @@
   margin-bottom: 3rem;
 }
 
-.fundraiser-description {
-  margin-bottom: 2.5rem;
-  line-height: 1.8;
-  font-size: 1.05rem;
-}
-
-.fundraiser-description h2,
-.fundraiser-evidence h2,
-.donation-section h2 {
-  color: var(--secondary-color);
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid var(--border-color);
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.fundraiser-evidence {
-  margin-bottom: 2.5rem;
+.completion-section {
+  margin: 2rem 0;
   padding: 1.5rem;
+  background: #f8f9fa;
   border-radius: var(--border-radius);
 }
-.fundraiser-evidence a {
-  color: var(--primary-color);
-  text-decoration: none;
-  font-weight: 600;
-  transition: var(--transition);
-  display: inline-block;
-  margin-top: 1rem;
+
+.completion-section h2 {
+  margin-top: 0;
+  color: var(--secondary-color);
 }
 
-.fundraiser-evidence a:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
+.completion-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
 }
 
-/* Donation Section */
-.donation-section {
-  margin: 3rem 0;
-  padding: 2.5rem;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
-}
-
-.donate-button {
-  background: linear-gradient(135deg, var(--primary-color) 0%, #4cc9b7 100%);
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 50px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin: 1rem 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  transition: var(--transition);
-  box-shadow: 0 4px 15px rgba(42, 157, 143, 0.3);
-}
-
-.donate-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(42, 157, 143, 0.4);
-}
-
-.donate-button:active {
-  transform: translateY(1px);
-}
-
+/* Donations List */
 .donations-list {
   margin-top: 2.5rem;
-}
-
-.donations-list h3 {
-  color: var(--secondary-color);
-  margin-bottom: 1.5rem;
-  font-size: 1.25rem;
 }
 
 .donations-list ul {
@@ -438,71 +323,43 @@
   margin: 0;
 }
 
-.donations-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.donation-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 1rem;
   padding: 1rem 0;
   border-bottom: 1px solid var(--border-color);
-  transition: var(--transition);
+  align-items: center;
 }
 
-.donations-list li:hover {
-  background: rgba(233, 196, 106, 0.05);
-}
-
-.donations-list li span {
-  flex: 1;
-  font-size: 0.95rem;
-}
-
-.donations-list li span:first-child {
+.donation-amount {
   font-weight: 600;
   color: var(--primary-color);
+}
+
+.donation-status {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .status-success {
   color: var(--success-color);
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+}
+
+.status-pending {
+  color: var(--accent-color);
 }
 
 .status-failed {
   color: var(--danger-color);
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
-.show-more {
-  background: none;
-  border: none;
-  color: var(--primary-color);
-  cursor: pointer;
-  margin-top: 1.5rem;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: var(--transition);
-  padding: 0.5rem 0;
-}
-
-.show-more:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
-}
-
-.show-more::after {
-  content: '→';
-  transition: transform 0.3s ease;
-}
-
-.show-more:hover::after {
-  transform: translateX(3px);
+.no-donations {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-light);
 }
 
 /* Action Buttons */
@@ -551,6 +408,12 @@
   margin-bottom: 1.5rem;
 }
 
+.loading-spinner.small {
+  width: 30px;
+  height: 30px;
+  border-width: 3px;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -573,6 +436,85 @@
   font-weight: 600;
 }
 
+.login-button,
+.retry-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  margin: 0.5rem;
+}
+
+.login-button {
+  background: var(--primary-color);
+  color: white;
+}
+
+.login-button:hover {
+  background: var(--primary-hover);
+}
+
+.retry-button {
+  background: #e9ecef;
+  color: var(--text-color);
+}
+
+.retry-button:hover {
+  background: #dee2e6;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.report-modal {
+  background-color: white;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  width: 90%;
+  max-width: 500px;
+  box-shadow: var(--box-shadow-hover);
+}
+
+.report-modal h3 {
+  margin-top: 0;
+  color: #c62828;
+}
+
+.report-select {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+}
+
+.report-error {
+  color: var(--danger-color);
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
 /* Responsive Design */
 @media (max-width: 992px) {
   .title-section h1 {
@@ -581,6 +523,10 @@
   
   .amounts-display {
     gap: 1.5rem;
+  }
+  
+  .donation-item {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -614,8 +560,9 @@
     padding: 1.5rem;
   }
   
-  .donation-section {
-    padding: 1.5rem;
+  .donation-item {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
 }
 
@@ -629,13 +576,49 @@
     min-width: 100%;
   }
   
-  .donations-list li {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
   .action-buttons {
     justify-content: center;
   }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+}
+
+/* Dark Theme Styles */
+.theme-dark {
+  --text-color: #f8f9fa;
+  --text-light: #adb5bd;
+  --bg-light: #343a40;
+  --border-color: #495057;
+  --secondary-color: #ced4da;
+}
+
+
+.theme-dark .fundraiser-content {
+  background-color: #2b3035;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.theme-dark .fundraiser-image.fallback {
+  background: #343a40;
+}
+
+.theme-dark .progress-container {
+  background: #495057;
+}
+
+.theme-dark .completion-section {
+  background: #343a40;
+}
+
+.theme-dark .report-modal {
+  background-color: #343a40;
+  color: #f8f9fa;
+}
+
+.theme-dark .report-select {
+  background-color: #495057;
+  border-color: #6c757d;
+  color: #f8f9fa;
 }

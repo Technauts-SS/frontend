@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import DonationForm from './DonationForm';
 import "./FundraiserDetail.css";
+import "./SharedSections.css";
 import api from '../../api';
 
 const FundraiserDetail = () => {
@@ -36,7 +37,6 @@ const FundraiserDetail = () => {
     ];
 
     useEffect(() => {
-        // Перевіряємо, чи користувач авторизований
         const token = localStorage.getItem('token');
         setIsAuthenticated(!!token);
     }, []);
@@ -158,8 +158,6 @@ const FundraiserDetail = () => {
             }
 
             setFundraiser(fundraiserRes.data);
-            
-            // Завантажуємо донати для всіх користувачів
             await fetchDonations();
 
             animateValue(0, fundraiserRes.data.current_amount, setAnimatedAmount);
@@ -170,7 +168,6 @@ const FundraiserDetail = () => {
             const userId = localStorage.getItem('userId');
             setIsOwner(userId && userId === fundraiserRes.data.creator?.id?.toString());
 
-            // Використовуємо warnings_count з відповіді, якщо є
             setReportsCount(fundraiserRes.data.warnings_count || 0);
             
         } catch (error) {
@@ -232,7 +229,6 @@ const FundraiserDetail = () => {
             setShowReportModal(false);
             setReportReason('');
             
-            // Оновлюємо кількість скарг з відповіді сервера
             if (response.data?.fundraiser?.warnings_count !== undefined) {
                 setReportsCount(response.data.fundraiser.warnings_count);
             }
@@ -290,7 +286,6 @@ const FundraiserDetail = () => {
 
     const handleDonationSubmit = async (donationData) => {
         try {
-            // Перевіряємо, чи авторизований користувач
             const token = localStorage.getItem('token');
             
             const apiEndpoint = '/donations/';
@@ -470,7 +465,6 @@ const FundraiserDetail = () => {
                     <div className="category-badge">
                         {getCategoryLabel(fundraiser.category)}
                     </div>
-                    {/* Показуємо кількість скарг тільки для авторизованих */}
                     {localStorage.getItem('token') && reportsCount > 0 && (
                         <div className="reports-badge" title={`Кількість скарг: ${reportsCount}`}>
                             ⚠️ {reportsCount}
@@ -580,14 +574,14 @@ const FundraiserDetail = () => {
             </div>
 
             <div className="fundraiser-content">
-                <div className="fundraiser-description">
-                    <h2>Про збір</h2>
+                <div className="section-container fundraiser-description">
+                    <h2 className="section-title">Про збір</h2>
                     <p>{fundraiser.description}</p>
                 </div>
 
                 {fundraiser.evidence && (
-                    <div className="fundraiser-evidence">
-                        <h2>Підтвердження</h2>
+                    <div className="section-container fundraiser-evidence">
+                        <h2 className="section-title">Підтвердження</h2>
                         <p>{fundraiser.evidence}</p>
                         {fundraiser.evidence_link && (
                             <a 
@@ -604,8 +598,8 @@ const FundraiserDetail = () => {
 
                 {renderCompletionDetails()}
 
-                <div className="donation-section">
-                    <h2>Підтримати збір</h2>
+                <div className="section-container donation-section">
+                    <h2 className="section-title">Підтримати збір</h2>
                     
                     {fundraiser.status === 'active' ? (
                         <>
@@ -624,8 +618,6 @@ const FundraiserDetail = () => {
                                     isAuthenticated={isAuthenticated}
                                 />
                             )}
-
-                            
                         </>
                     ) : (
                         <p className="campaign-not-active">
