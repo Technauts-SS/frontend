@@ -227,7 +227,7 @@ const FundraisingCard = ({
                     {donationLink && computedStatus === 'active' && (
                         <a 
                             href={donationLink} 
-                            className="donate-button" 
+                            className="donate_button" 
                             target="_blank" 
                             rel="noopener noreferrer"
                             aria-label="Підтримати цей збір"

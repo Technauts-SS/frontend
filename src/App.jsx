@@ -5,7 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 
 import Header from "./components/common/header/Header";
 import HeroSection from "./components/HeroSection";
-import FundraisingList from "./components/fundraising/FundraisingList";
+import FundraisingListHero from"./components/fundraising/FundraisingListHero"
 import ContactForm from "./components/ContactForm";
 import CategoryPage from "./components/CategoryPage";
 import CreateFundraiser from "./components/fundraising/CreateFundraiser"; 
@@ -32,7 +32,7 @@ function App() {
                 element={
                   <>
                     <HeroSection />
-                    <FundraisingList />
+                    <FundraisingListHero />
                     <ContactForm />
                   </>
                 }
