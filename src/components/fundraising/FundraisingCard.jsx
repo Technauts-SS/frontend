@@ -240,7 +240,7 @@ const FundraisingCard = ({
                         <div className="owner-buttons">
                             <Link 
                                 to={`/fundraiser/${id}/edit`}
-                                className="edit-button"
+                                className="edit-button1"
                                 aria-label="Редагувати збір"
                             >
                                 Редагувати

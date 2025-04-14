@@ -231,7 +231,7 @@
 
 .details-button,
 .donate_button,
-.edit-button,
+.edit-button1,
 .delete-button {
   padding: 8px 12px;
   border-radius: 6px;
@@ -246,14 +246,15 @@
 }
 
 .details-button,
-.donate_button {
+.donate_button,
+.edit-button1 {
   background: #2a9d8f;
-  color: rgb(46, 44, 44);
+  color: rgb(255, 255, 255);
 }
 
 
 
-.edit-button {
+.edit-button1 {
   background: #2a9d8f;
   color: white;
 }
@@ -294,7 +295,7 @@
   
   .details-button,
   .donate_button,
-  .edit-button,
+  .edit-button1,
   .delete-button {
     width: 100%;
   }

@@ -201,11 +201,18 @@ const EditFundraiser = () => {
             } else {
                 setCurrentEvidenceFile('');
             }
+            
+            // Прокручуємо сторінку вгору, щоб користувач побачив повідомлення про успіх
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
             console.error('Update error:', err);
             setError(err.response?.data?.message || err.response?.data || 'Сталася помилка при оновленні збору');
             setSuccess(false);
         }
+    };
+
+    const closeSuccessMessage = () => {
+        setSuccess(false);
     };
 
     if (loading) {
@@ -219,19 +226,38 @@ const EditFundraiser = () => {
 
     return (
         <div className="container" id="editFundraiser">
-            <h2 class="text">Редагувати збір</h2>
+            <h2 className="text">Редагувати збір</h2>
+            
+            {/* Модальне вікно з повідомленням про успіх */}
             {success && (
-                <div className="success-message">
-                    <p>Збір успішно оновлено!</p>
-                    <button 
-                        onClick={() => navigate(`/fundraiser/${id}`)}
-                        className="success-button"
-                    >
-                        Перейти до збору
-                    </button>
+                <div className="success-modal-overlay">
+                    <div className="success-modal">
+                        <div className="success-modal-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <h3>Збір успішно оновлено!</h3>
+                        <div className="success-modal-buttons">
+                            <button 
+                                onClick={() => navigate(`/fundraiser/${id}`)}
+                                className="success-edit-button "
+                            >
+                                Перейти до збору
+                            </button>
+                            <button 
+                                onClick={closeSuccessMessage}
+                                className="close-edit-button "
+                            >
+                                Закрити
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
-            {error && <p className="error-message">{error}</p>}
+            
+            {error && <div className="error-message">{error}</div>}
 
             <form onSubmit={handleSubmit} className="fundraiser-form" encType="multipart/form-data">
                 <div className="form-section">
@@ -488,7 +514,7 @@ const EditFundraiser = () => {
                         ) : (
                             <label className="file-upload-label">
                                 <div className="file-upload-design">
-                                <svg class="picture-icon" xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 24 24">
+                                <svg className="picture-icon" xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 24 24">
   <path d="m12,21c0,.553-.448,1-1,1h-6c-2.757,0-5-2.243-5-5V5C0,2.243,2.243,0,5,0h12c2.757,0,5,2.243,5,5v6c0,.553-.448,1-1,1s-1-.447-1-1v-6c0-1.654-1.346-3-3-3H5c-1.654,0-3,1.346-3,3v6.959l2.808-2.808c1.532-1.533,4.025-1.533,5.558,0l5.341,5.341c.391.391.391,1.023,0,1.414-.195.195-.451.293-.707.293s-.512-.098-.707-.293l-5.341-5.341c-.752-.751-1.976-.752-2.73,0l-4.222,4.222v2.213c0,1.654,1.346,3,3,3h6c.552,0,1,.447,1,1ZM15,3.5c1.654,0,3,1.346,3,3s-1.346,3-3,3-3-1.346-3-3,1.346-3,3-3Zm0,2c-.551,0-1,.448-1,1s.449,1,1,1,1-.448,1-1-.449-1-1-1Zm8,12.5h-3v-3c0-.553-.448-1-1-1s-1,.447-1,1v3h-3c-.552,0-1,.447-1,1s.448,1,1,1h3v3c0,.553.448,1,1,1s1-.447,1-1v-3h3c.552,0,1-.447,1-1s-.448-1-1-1Z"/>
 </svg>
                                     <span className="file-upload-text">
