@@ -27,12 +27,13 @@ const FundraisingList = () => {
                     params.category = searchParams.get("category") || categoryFromPath;
                 }
                 
-                if (searchParams.get("location")) {
-                    params.location = searchParams.get("location");
+                if (searchParams.get("city")) {
+                    params.location = searchParams.get("city");
                 }
                 
-                if (searchParams.get("helpType")) {
-                    params.help_type = searchParams.get("helpType");
+                if (searchParams.get("status")) {
+                    // Змінено з help_type на status
+                    params.status = searchParams.get("status");
                 }
                 
                 if (searchParams.get("urgency")) {
