@@ -245,15 +245,13 @@
   font-weight: 500;
 }
 
-.details-button {
+.details-button,
+.donate-button {
   background: #2a9d8f;
   color: rgb(46, 44, 44);
 }
 
-.donate-button {
-  background: #FF5722;
-  color: white;
-}
+
 
 .edit-button {
   background: #2a9d8f;

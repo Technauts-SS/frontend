@@ -18,7 +18,8 @@ const CreateFundraiser = () => {
     const [evidenceFile, setEvidenceFile] = useState(null);
     const [image, setImage] = useState(null);
     const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [createdFundraiserId, setCreatedFundraiserId] = useState(null);
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [useCustomContact, setUseCustomContact] = useState(false);
@@ -125,7 +126,7 @@ const CreateFundraiser = () => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.post(
+            const response = await axios.post(
                 'http://127.0.0.1:8000/api/fundraisers/create/',
                 data,
                 {
@@ -136,16 +137,16 @@ const CreateFundraiser = () => {
                 }
             );
 
-            setSuccess(true);
             setError(null);
-            resetForm();
+            setCreatedFundraiserId(response.data.id || null);
+            setShowSuccessModal(true);
         } catch (err) {
             if (err.response?.status === 401) {
                 localStorage.removeItem('token');
                 navigate('/login', { state: { from: '/create-fundraiser' } });
             } else {
                 setError(err.response?.data?.message || err.response?.data || 'Сталася помилка при створенні збору');
-                setSuccess(false);
+                setShowSuccessModal(false);
             }
         }
     };
@@ -164,6 +165,19 @@ const CreateFundraiser = () => {
         });
         setEvidenceFile(null);
         setImage(null);
+        setShowSuccessModal(false);
+    };
+
+    const handleCreateAnother = () => {
+        resetForm();
+    };
+
+    const handleViewFundraiser = () => {
+        if (createdFundraiserId) {
+            navigate(`/fundraiser/${createdFundraiserId}`);
+        } else {
+            navigate('/fundraisers');
+        }
     };
 
     if (loading) {
@@ -191,19 +205,34 @@ const CreateFundraiser = () => {
 
     return (
         <div className="container" id="createFundraiser">
-            <h2 class="text">Створити новий збір</h2>
-            {success && (
-                <div className="success-message">
-                    <p>Збір успішно створено!</p>
-                    <button 
-                        className="create-another-button"
-                        onClick={resetForm}
-                    >
-                        Створити ще один збір
-                    </button>
+            <h2 className="text">Створити новий збір</h2>
+            {error && <p className="error-message">{error}</p>}
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="success-modal-overlay">
+                    <div className="success-modal">
+                        <div className="success-modal-header">
+                            <svg className="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M22 4L12 14.01L9 11.01" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            <h3>Збір успішно створено!</h3>
+                        </div>
+                        <div className="success-modal-body">
+                            <p>Ваш збір успішно створено та розміщено на платформі. Що бажаєте зробити далі?</p>
+                        </div>
+                        <div className="success-modal-footer">
+                            <button className="primary-button" onClick={handleViewFundraiser}>
+                                Переглянути збір
+                            </button>
+                            <button className="secondary-button" onClick={handleCreateAnother}>
+                                Створити ще один збір
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
-            {error && <p className="error-message">{error}</p>}
 
             <form onSubmit={handleSubmit} className="fundraiser-form" encType="multipart/form-data">
                 <div className="form-section">

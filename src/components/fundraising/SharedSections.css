@@ -57,19 +57,7 @@
   text-decoration: underline;
 }
 
-/* Кнопки в секціях */
-.donate-button {
-  background: linear-gradient(135deg, #2a9d8f 0%, #23685f 100%);
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 50px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(33, 140, 109, 0.3);
-}
+
 
 .donate-button:hover {
   transform: translateY(-2px);
