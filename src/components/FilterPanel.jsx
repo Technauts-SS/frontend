@@ -1,10 +1,12 @@
 import { useState, useEffect, useContext } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { ThemeContext } from "../ThemeContext";
 import "../components/FilterPanel.css";
 
 const FilterPanel = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
     location: searchParams.get('location') || '',
@@ -13,6 +15,19 @@ const FilterPanel = () => {
   });
   const [isExpanded, setIsExpanded] = useState(true);
   const { theme } = useContext(ThemeContext);
+  
+  // Extract category from path if present
+  useEffect(() => {
+    const pathParts = location.pathname.split('/');
+    const categoryFromPath = pathParts.length > 2 && pathParts[2] ? pathParts[2] : '';
+    
+    if (categoryFromPath && !filters.category) {
+      setFilters(prev => ({
+        ...prev,
+        category: categoryFromPath
+      }));
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -23,12 +38,25 @@ const FilterPanel = () => {
   }, [filters, setSearchParams]);
 
   const handleResetFilters = () => {
+    // Reset all filters
     setFilters({
       category: '',
       location: '',
       helpType: '',
       urgency: ''
     });
+    
+    // Navigate to base category page
+    navigate('/category', { replace: true });
+    
+    // Clear search params explicitly
+    setSearchParams({});
+    
+    // Dispatch the event after a short delay to ensure state updates have been processed
+    setTimeout(() => {
+      console.log("Dispatching filtersCleared event");
+      window.dispatchEvent(new CustomEvent('filtersCleared'));
+    }, 50);
   };
 
   const handleSelectChange = (field, value) => {
@@ -36,6 +64,13 @@ const FilterPanel = () => {
       ...prevFilters,
       [field]: value
     }));
+    
+    // If changing category filter, update URL path as well
+    if (field === 'category' && value) {
+      navigate(`/category/${value}`);
+    } else if (field === 'category' && !value) {
+      navigate('/category');
+    }
   };
 
   const FilterSelect = ({ label, field, options }) => (

@@ -1,14 +1,10 @@
 .donation-form {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   max-width: 600px;
   margin: 0 auto;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.theme-dark .donation-form {
-  background: #2d3748;
 }
 
 .form-group {
@@ -18,96 +14,62 @@
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.theme-dark .form-group label {
-  color: #f7fafc;
+  font-weight: 500;
+  color: #333;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   font-size: 1rem;
-  transition: border-color 0.3s;
 }
 
-.theme-dark .form-group input,
-.theme-dark .form-group select,
-.theme-dark .form-group textarea {
-  background: #4a5568;
-  border-color: #4a5568;
-  color: #f7fafc;
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  border-color: #4299e1;
-  outline: none;
+.form-group input.error,
+.form-group select.error,
+.form-group textarea.error {
+  border-color: #f44336;
 }
 
 .error-message {
-  color: #e53e3e;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
+  color: #f44336;
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.3rem;
+  font-style: italic;
 }
 
 .form-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 1rem;
   margin-top: 2rem;
 }
 
-.submit-button {
-  background: #4299e1;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.3s;
-}
-
-.submit-button:hover {
-  background: #3182ce;
-}
 
 .cancel-button {
-  background: none;
-  border: 1px solid #e2e8f0;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.3s;
-}
-
-.theme-dark .cancel-button {
-  border-color: #4a5568;
-  color: #f7fafc;
 }
 
 .cancel-button:hover {
-  background: #f7fafc;
-}
-
-.theme-dark .cancel-button:hover {
-  background: #4a5568;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .donation-form {
-    padding: 1rem;
-  }
-  
-  .form-actions {
-    flex-direction: column;
-  }
+  background: #d32f2f;
 }
