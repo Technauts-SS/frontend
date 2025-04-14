@@ -73,22 +73,20 @@ const DonationForm = ({ onSubmit, onCancel, isAuthenticated }) => {
         e.preventDefault();
         
         if (validateForm()) {
+            // Перевіряємо тестовий сценарій відмови
+            if (formData.mock_card_number === '4000000000000002') {
+                setErrors({
+                    form: 'Оплата відхилена.'
+                });
+                return;
+            }
+    
             setIsSubmitting(true);
             try {
                 await onSubmit({
                     ...formData,
                     amount: parseFloat(formData.amount)
                 });
-                // Якщо потрібно очистити форму після успішного надсилання
-                // setFormData({
-                //    amount: '',
-                //    mock_card_number: '4242424242424242',
-                //    name: '',
-                //    email: '',
-                //    message: '',
-                //    phone: '',
-                //    anonymous: true
-                // });
             } catch (error) {
                 console.error("Помилка при надсиланні донату:", error);
                 setErrors(prev => ({
