@@ -122,16 +122,6 @@ const AdminPanel = () => {
   return (
     <div className="admin-panel">
       <h2>Панель адміністратора</h2>
-      <div className="last-update">
-        Останнє оновлення: {new Date(lastUpdate).toLocaleTimeString()}
-        <button 
-          onClick={() => fetchUsers(true)}
-          disabled={loading}
-          className="refresh-button"
-        >
-          {loading ? 'Оновлення...' : 'Оновити дані'}
-        </button>
-      </div>
       
       {loading && users.length === 0 ? (
         <div className="loading">Завантаження...</div>

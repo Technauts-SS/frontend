@@ -96,6 +96,13 @@
 
 .status-badge {
   position: absolute;
+  bottom: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  color: white;
+  z-index: 2;
+  height: 2rem;
 }
 
 /* Meta Information */
@@ -593,7 +600,6 @@
   --border-color: #495057;
   --secondary-color: #ced4da;
 }
-
 
 .theme-dark .fundraiser-content {
   background-color: #2b3035;

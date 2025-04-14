@@ -30,7 +30,7 @@ const ModerationPanel = () => {
       setLoading(true);
       setError(null);
 
-      // Завжди завантажуємо звіти
+      // Завантажуємо звіти
       const reportsResponse = await api.get('reports/for_moderation/');
       const reports = reportsResponse.data;
 
@@ -46,12 +46,11 @@ const ModerationPanel = () => {
         rejected: reports.stats?.rejected || reports.recently_processed?.filter(r => r.status === 'rejected').length || 0
       }));
 
-      // Завжди завантажуємо кампанії (збори)
+      // Завантажуємо кампанії
       const campaignsResponse = await api.get('fundraisers/moderation/campaigns/');
       const campaigns = campaignsResponse.data.results || campaignsResponse.data || [];
       setCampaignsData(campaigns);
       
-      // Рахуємо кількість зборів зі статусом pending
       const pendingCampaigns = campaigns.filter(c => c.status === 'pending');
       
       setStats(prev => ({ 
@@ -97,34 +96,26 @@ const ModerationPanel = () => {
           resolution_note: resolutionNote
         });
   
-        // Якщо скаргу схвалено (підтверджені порушення)
         if (action === 'approve') {
-          // Отримуємо деталі збору, щоб дізнатись його поточний статус
           const fundraiserResponse = await api.get(`fundraisers/${item.fundraiser}/`);
           const fundraiser = fundraiserResponse.data;
           
-          // Якщо збір активний або паузований, змінюємо статус на скасований
           if (fundraiser.status === 'active' || fundraiser.status === 'paused') {
             await api.patch(`fundraisers/${item.fundraiser}/update_status/`, {
               status: 'cancelled',
               resolution_note: `Скасовано модератором через підтверджену скаргу #${item.id}`
             });
-            console.log(`Збір #${item.fundraiser} скасовано через підтверджену скаргу #${item.id}`);
           }
           
-          // Додатково можна перевірити кількість скарг (якщо ви хочете зберегти цю логіку)
           const reportsResponse = await api.get(`reports/count/?fundraiser=${item.fundraiser}`);
           if (reportsResponse.data.count >= 3 && fundraiser.status === 'active') {
-            // Якщо з якоїсь причини збір не був скасований вище, призупиняємо його
             await api.patch(`fundraisers/${item.fundraiser}/update_status/`, {
               status: 'paused'
             });
-            console.log(`Збір #${item.fundraiser} призупинено через кількість скарг: ${reportsResponse.data.count}`);
           }
         }
       }
   
-      // Оновлюємо дані
       await fetchAllData();
       toast.success(`Статус успішно оновлено`);
       
@@ -137,6 +128,7 @@ const ModerationPanel = () => {
       setCurrentItemId(null);
     }
   };
+
   const viewCampaignDetails = (campaignId) => {
     navigate(`/fundraiser/${campaignId}`);
   };
@@ -149,7 +141,8 @@ const ModerationPanel = () => {
         <div className="card-header" onClick={() => setCurrentItemId(isExpanded ? null : campaign.id)}>
           <h3>{campaign.title}</h3>
           <span className={`badge status-badge ${campaign.status}`}>
-            {campaign.status === 'pending' ? 'На розгляді' : campaign.status}
+            {campaign.status === 'pending' ? 'На розгляді' : 
+             campaign.status === 'active' ? 'Активний' : 'Скасовано'}
           </span>
           <div className="meta">
             <span>Створено: {new Date(campaign.created_at).toLocaleDateString('uk-UA')}</span>
@@ -182,20 +175,22 @@ const ModerationPanel = () => {
                 rows="3"
               />
               <div className="buttons">
-                <button onClick={() => viewCampaignDetails(campaign.id)}>Переглянути збір</button>
+                <button onClick={() => viewCampaignDetails(campaign.id)}>
+                  <i className="icon-eye"></i> Переглянути збір
+                </button>
                 <button
                   className="approve"
                   onClick={() => handleAction(campaign, 'approve')}
                   disabled={loading}
                 >
-                  Схвалити
+                  <i className="icon-check"></i> Схвалити
                 </button>
                 <button
                   className="reject"
                   onClick={() => handleAction(campaign, 'reject')}
                   disabled={loading}
                 >
-                  Відхилити
+                  <i className="icon-x"></i> Відхилити
                 </button>
               </div>
             </div>
@@ -218,7 +213,7 @@ const ModerationPanel = () => {
             report.status === 'approved' ? 'approved' : 'rejected'
           }`}>
             {isPending ? 'Очікує' :
-             report.status === 'approved' ? 'Схвалено' : 'Відхилено'}
+             report.status === 'approved' ? 'Підтверджено' : 'Без порушень'}
           </span>
           <div className="meta">
             <span>Дата: {new Date(report.created_at).toLocaleDateString('uk-UA')}</span>
@@ -246,26 +241,28 @@ const ModerationPanel = () => {
                     rows="3"
                   />
                   <div className="buttons">
-                    <button onClick={() => viewCampaignDetails(report.fundraiser)}>Переглянути збір</button>
+                    <button onClick={() => viewCampaignDetails(report.fundraiser)}>
+                      <i className="icon-eye"></i> Переглянути збір
+                    </button>
                     <button
                       className="approve"
                       onClick={() => handleAction(report, 'approve')}
                       disabled={loading}
                     >
-                      Підтверджені порушення
+                      <i className="icon-check"></i> Підтверджені порушення
                     </button>
                     <button
                       className="reject"
                       onClick={() => handleAction(report, 'reject')}
                       disabled={loading}
                     >
-                      Відхилені (без порушень)
+                      <i className="icon-x"></i> Відхилені (без порушень)
                     </button>
                   </div>
                 </>
               ) : (
                 <div className="resolution-info">
-                  <p><strong>Статус:</strong> {report.status === 'approved' ? 'Схвалено' : 'Відхилено'}</p>
+                  <p><strong>Статус:</strong> {report.status === 'approved' ? 'Підтверджено' : 'Без порушень'}</p>
                   <p><strong>Дата обробки:</strong> {new Date(report.processed_at).toLocaleDateString('uk-UA')}</p>
                   {report.resolution_note && (
                     <p><strong>Коментар:</strong> {report.resolution_note}</p>
@@ -288,9 +285,8 @@ const ModerationPanel = () => {
       case 'rejected':
         return reportsData.recently_processed.filter(r => r.status === 'rejected');
       case 'campaigns':
-        return campaignsData; // Тут повертаються всі збори
+        return campaignsData;
       case 'under_review': 
-        // Фільтруємо збори зі статусом 'pending' для вкладки 'under_review'
         return campaignsData.filter(campaign => campaign.status === 'pending');
       default: 
         return [];
@@ -307,29 +303,34 @@ const ModerationPanel = () => {
           className={selectedTab === 'pending' ? 'active' : ''}
           onClick={() => handleTabChange('pending')}
         >
-          Скарги на модерації <span>{stats.pending}</span>
+          <i className="icon-clock"></i> Скарги на модерації <span>{stats.pending}</span>
         </button>
         <button
           className={selectedTab === 'approved' ? 'active' : ''}
           onClick={() => handleTabChange('approved')}
         >
-          Підтверджені скарги <span>{stats.approved}</span>
+          <i className="icon-check-circle"></i> Підтверджені скарги <span>{stats.approved}</span>
         </button>
         <button
           className={selectedTab === 'rejected' ? 'active' : ''}
           onClick={() => handleTabChange('rejected')}
         >
-          Без порушень <span>{stats.rejected}</span>
+          <i className="icon-x-circle"></i> Без порушень <span>{stats.rejected}</span>
         </button>
         <button
           className={selectedTab === 'under_review' ? 'active' : ''}
           onClick={() => handleTabChange('under_review')}
         >
-          Збори на розгляді <span>{stats.pendingCampaigns}</span>
+          <i className="icon-file-text"></i> Збори на розгляді <span>{stats.pendingCampaigns}</span>
         </button>
       </div>
 
-      {loading && <div className="loading">Завантаження...</div>}
+      {loading && (
+        <div className="loading">
+          <div className="spinner"></div>
+          <p>Завантаження даних...</p>
+        </div>
+      )}
       {error && <div className="error">{error}</div>}
 
       <div className="content">
@@ -338,7 +339,10 @@ const ModerationPanel = () => {
             ? getActiveData().map(renderReportCard)
             : getActiveData().map(renderCampaignCard)
         ) : (
-          <div className="empty">Немає елементів для перегляду</div>
+          <div className="empty">
+            <i className="icon-inbox"></i>
+            <p>Немає елементів для перегляду</p>
+          </div>
         )}
       </div>
     </div>

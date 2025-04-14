@@ -22,31 +22,6 @@
   position: relative;
 }
 
-.admin-panel h2:after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100px;
-  height: 2px;
-  background-color: #3b82f6;
-}
-
-/* Інформація про останнє оновлення */
-.last-update {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  font-size: 0.875rem;
-  color: #64748b;
-  background-color: #f1f5f9;
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
-  border-left: 4px solid #3b82f6;
-}
-
 /* Кнопка оновлення */
 .refresh-button {
   background-color: #3b82f6;

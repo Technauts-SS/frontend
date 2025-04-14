@@ -9,7 +9,7 @@
 }
 
 .theme-dark .section-container {
-  background-color: #1e323c;
+  background-color: #323333;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -30,27 +30,27 @@
 
 /* Специфічні стилі для секцій */
 .fundraiser-evidence {
-  border-left: 4px solid #4299e1;
+  border-left: 4px solid #2a9d8f;
 }
 
 .donation-section {
-  background-color: #f0f9ff;
+  background-color: #f9fffe;
 }
 
 .theme-dark .donation-section {
-  background-color: #1a365d;
+  background-color: #2b2c2e;
 }
 
 /* Посилання в секціях */
 .section-container a {
-  color: #3182ce;
+  color: #2a9d8f;
   text-decoration: none;
   transition: color 0.2s;
   font-weight: 500;
 }
 
 .theme-dark .section-container a {
-  color: #63b3ed;
+  color: #2a9d8f;
 }
 
 .section-container a:hover {
@@ -59,7 +59,7 @@
 
 /* Кнопки в секціях */
 .donate-button {
-  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  background: linear-gradient(135deg, #2a9d8f 0%, #23685f 100%);
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -68,7 +68,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+  box-shadow: 0 4px 15px rgba(33, 140, 109, 0.3);
 }
 
 .donate-button:hover {
