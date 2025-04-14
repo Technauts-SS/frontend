@@ -288,6 +288,18 @@ const FundraiserDetail = () => {
         try {
             const token = localStorage.getItem('token');
             
+            // Перевіряємо, чи це тестова картка з відмовою
+            if (donationData.mock_card_number === '4000000000000002') {
+                throw {
+                    response: {
+                        data: {
+                            detail: "Оплата відхилена. Це тестовий сценарій відмови в оплаті.",
+                            code: "card_declined"
+                        }
+                    }
+                };
+            }
+    
             const apiEndpoint = '/donations/';
             
             const response = await api.post(apiEndpoint, { 
@@ -303,10 +315,20 @@ const FundraiserDetail = () => {
             
         } catch (error) {
             console.error('Error submitting donation:', error);
-            const errorMessage = error.response?.data?.detail || 
-                               error.response?.data?.message || 
-                               'Помилка при здійсненні донату';
-            toast.error(errorMessage);
+            let errorMessage = 'Помилка при здійсненні донату';
+            
+            if (error.response?.data?.code === "card_declined") {
+                errorMessage = error.response.data.detail;
+            } else {
+                errorMessage = error.response?.data?.detail || 
+                             error.response?.data?.message || 
+                             'Помилка при здійсненні донату';
+            }
+            
+            toast.error(errorMessage, {
+                autoClose: 5000,
+                closeButton: true,
+            });
         }
     };
 
