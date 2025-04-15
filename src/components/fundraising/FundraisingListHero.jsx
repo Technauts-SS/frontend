@@ -76,8 +76,13 @@ const FundraisingList = () => {
             const response = await axios.get("http://127.0.0.1:8000/api/fundraisers/", { params });
             const allFundraisers = response.data.results || response.data;
             
+            // Filter out completed fundraisers (where goal_amount <= current_amount)
+            const activeFundraisers = allFundraisers.filter(
+                item => item.goal_amount > item.current_amount
+            );
+            
             // Sort fundraisers by the amount left to collect (least remaining first)
-            const sortedFundraisers = allFundraisers.map(item => ({
+            const sortedFundraisers = activeFundraisers.map(item => ({
                 ...item,
                 amountLeft: item.goal_amount - item.current_amount
             }))
@@ -166,7 +171,7 @@ const FundraisingList = () => {
                             </div>
                         ))
                     ) : (
-                        <p className="no-fundraisers">Зборів за вибраними фільтрами немає.</p>
+                        <p className="no-fundraisers">Наразі немає активних зборів за вибраними фільтрами.</p>
                     )}
                 </div>
                 
