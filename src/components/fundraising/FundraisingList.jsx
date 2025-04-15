@@ -32,7 +32,6 @@ const FundraisingList = () => {
                 }
                 
                 if (searchParams.get("status")) {
-                    // Змінено з help_type на status
                     params.status = searchParams.get("status");
                 }
                 
@@ -48,7 +47,13 @@ const FundraisingList = () => {
             params._t = new Date().getTime();
             
             const response = await axios.get("http://127.0.0.1:8000/api/fundraisers/", { params });
-            setFundraisingData(response.data.results || response.data);
+            
+            // Filter out completed fundraisers and sort by remaining amount
+            const activeFundraisers = (response.data.results || response.data)
+                .filter(item => item.goal_amount > item.current_amount)
+                .sort((a, b) => (a.goal_amount - a.current_amount) - (b.goal_amount - b.current_amount));
+            
+            setFundraisingData(activeFundraisers);
             setLoading(false);
         } catch (err) {
             console.error("Error fetching fundraisers:", err);
@@ -88,13 +93,16 @@ const FundraisingList = () => {
         }
     }, [ignoreFilters]);
 
-    if (loading) return <p>Завантаження зборів...</p>;
-    if (error) return <p style={{ color: "red" }}>{error}</p>;
+    if (loading) return <div className="loading-message">Завантаження зборів...</div>;
+    if (error) return <div className="error-message" style={{ color: "red" }}>{error}</div>;
 
     return (
-        <div>
+        <div className="fundraising-container">
             <div className="fundraising-header">
-                <h2>Збір коштів {ignoreFilters ? '(всі категорії)' : ''}</h2>
+                <h2>Активні збори коштів {ignoreFilters ? '(всі категорії)' : ''}</h2>
+                {fundraisingData.length > 0 && (
+                    <p className="fundraising-subheader"></p>
+                )}
             </div>
             <div className="fundraising-list">
                 {fundraisingData.length > 0 ? (
@@ -118,7 +126,7 @@ const FundraisingList = () => {
                         />
                     ))
                 ) : (
-                    <p>Зборів за вибраними фільтрами немає.</p>
+                    <p className="no-fundraisers-message">Наразі немає активних зборів за вибраними фільтрами.</p>
                 )}
             </div>
         </div>
