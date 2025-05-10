@@ -30,10 +30,14 @@ const HeroSection = () => {
     <section className="hero">
       {/* Заголовок і картинка */}
       <div className="hero-header">
-        <div>
+      <div className="hero-text">
           <h1>Ти можеш змінити світ на краще!</h1>
-          <p>Якась інформація про сайт...</p>
-        </div>
+          <div className="hero-description">
+            <p>Шукаєте допомоги або хочете підтримати інших?</p>
+            <p>Наш сайт об'єднує тих, хто потребує, і тих, хто готовий допомогти.</p>
+            <p>Починайте збір або долучайтесь до ініціатив уже зараз!</p>
+          </div>
+          </div>
         <img src={ExchangeImage} alt="Exchange of Kindness" className="exchange-image" />
       </div>
 

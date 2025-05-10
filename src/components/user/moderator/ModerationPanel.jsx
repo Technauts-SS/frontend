@@ -1,0 +1,352 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../../../api';
+import './ModerationPanel.css';
+import { toast } from 'react-toastify';
+
+const ModerationPanel = () => {
+  const [selectedTab, setSelectedTab] = useState('pending');
+  const [reportsData, setReportsData] = useState({
+    pending: [],
+    recently_processed: []
+  });
+  const [campaignsData, setCampaignsData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [currentItemId, setCurrentItemId] = useState(null);
+  const [resolutionNote, setResolutionNote] = useState('');
+  const [stats, setStats] = useState({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    campaigns: 0,
+    pendingCampaigns: 0
+  });
+
+  const navigate = useNavigate();
+
+  const fetchAllData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Завантажуємо звіти
+      const reportsResponse = await api.get('reports/for_moderation/');
+      const reports = reportsResponse.data;
+
+      setReportsData({
+        pending: reports.pending || [],
+        recently_processed: reports.recently_processed || []
+      });
+
+      setStats(prev => ({
+        ...prev,
+        pending: reports.pending?.length || 0,
+        approved: reports.stats?.approved || reports.recently_processed?.filter(r => r.status === 'approved').length || 0,
+        rejected: reports.stats?.rejected || reports.recently_processed?.filter(r => r.status === 'rejected').length || 0
+      }));
+
+      // Завантажуємо кампанії
+      const campaignsResponse = await api.get('fundraisers/moderation/campaigns/');
+      const campaigns = campaignsResponse.data.results || campaignsResponse.data || [];
+      setCampaignsData(campaigns);
+      
+      const pendingCampaigns = campaigns.filter(c => c.status === 'pending');
+      
+      setStats(prev => ({ 
+        ...prev, 
+        campaigns: campaigns.length,
+        pendingCampaigns: pendingCampaigns.length 
+      }));
+      
+    } catch (error) {
+      console.error('Error loading data:', error);
+      setError('Не вдалося завантажити дані. Спробуйте оновити сторінку.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllData();
+  }, [selectedTab]);
+
+  const handleTabChange = (tabName) => {
+    setSelectedTab(tabName);
+    setCurrentItemId(null);
+  };
+
+  const handleAction = async (item, action) => {
+    try {
+      setLoading(true);
+      
+      if (selectedTab === 'under_review' || selectedTab === 'campaigns') {
+        // Для кампаній
+        const newStatus = action === 'approve' ? 'active' : 'cancelled';
+        
+        await api.patch(`fundraisers/${item.id}/update_status/`, {
+          status: newStatus,
+          resolution_note: resolutionNote
+        });
+        
+      } else {
+        // Для скарг
+        const response = await api.patch(`reports/${item.id}/update_status/`, {
+          status: action === 'approve' ? 'approved' : 'rejected',
+          resolution_note: resolutionNote
+        });
+  
+        if (action === 'approve') {
+          const fundraiserResponse = await api.get(`fundraisers/${item.fundraiser}/`);
+          const fundraiser = fundraiserResponse.data;
+          
+          if (fundraiser.status === 'active' || fundraiser.status === 'paused') {
+            await api.patch(`fundraisers/${item.fundraiser}/update_status/`, {
+              status: 'cancelled',
+              resolution_note: `Скасовано модератором через підтверджену скаргу #${item.id}`
+            });
+          }
+          
+          const reportsResponse = await api.get(`reports/count/?fundraiser=${item.fundraiser}`);
+          if (reportsResponse.data.count >= 3 && fundraiser.status === 'active') {
+            await api.patch(`fundraisers/${item.fundraiser}/update_status/`, {
+              status: 'paused'
+            });
+          }
+        }
+      }
+  
+      await fetchAllData();
+      toast.success(`Статус успішно оновлено`);
+      
+    } catch (error) {
+      console.error('Помилка при оновленні статусу:', error);
+      toast.error(`Помилка: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setLoading(false);
+      setResolutionNote('');
+      setCurrentItemId(null);
+    }
+  };
+
+  const viewCampaignDetails = (campaignId) => {
+    navigate(`/fundraiser/${campaignId}`);
+  };
+
+  const renderCampaignCard = (campaign) => {
+    const isExpanded = currentItemId === campaign.id;
+
+    return (
+      <div key={campaign.id} className={`moderation-card ${isExpanded ? 'expanded' : ''}`}>
+        <div className="card-header" onClick={() => setCurrentItemId(isExpanded ? null : campaign.id)}>
+          <h3>{campaign.title}</h3>
+          <span className={`badge status-badge ${campaign.status}`}>
+            {campaign.status === 'pending' ? 'На розгляді' : 
+             campaign.status === 'active' ? 'Активний' : 'Скасовано'}
+          </span>
+          <div className="meta">
+            <span>Створено: {new Date(campaign.created_at).toLocaleDateString('uk-UA')}</span>
+            <span>Ціль: {campaign.goal_amount} грн</span>
+          </div>
+        </div>
+
+        {isExpanded && (
+          <div className="card-details">
+            <div className="description">
+              <p>{campaign.description}</p>
+              {campaign.evidence && (
+                <>
+                  <h4>Докази:</h4>
+                  <p>{campaign.evidence}</p>
+                  {campaign.evidence_link && (
+                    <a href={campaign.evidence_link} target="_blank" rel="noopener noreferrer">
+                      Посилання на докази
+                    </a>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="actions">
+              <textarea
+                value={resolutionNote}
+                onChange={(e) => setResolutionNote(e.target.value)}
+                placeholder="Коментар модератора..."
+                rows="3"
+              />
+              <div className="buttons">
+                <button onClick={() => viewCampaignDetails(campaign.id)}>
+                  <i className="icon-eye"></i> Переглянути збір
+                </button>
+                <button
+                  className="approve"
+                  onClick={() => handleAction(campaign, 'approve')}
+                  disabled={loading}
+                >
+                  <i className="icon-check"></i> Схвалити
+                </button>
+                <button
+                  className="reject"
+                  onClick={() => handleAction(campaign, 'reject')}
+                  disabled={loading}
+                >
+                  <i className="icon-x"></i> Відхилити
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderReportCard = (report) => {
+    const isExpanded = currentItemId === report.id;
+    const isPending = report.status === 'pending';
+
+    return (
+      <div key={report.id} className={`moderation-card ${isExpanded ? 'expanded' : ''}`}>
+        <div className="card-header" onClick={() => setCurrentItemId(isExpanded ? null : report.id)}>
+          <h3>Скарга #{report.id}</h3>
+          <span className={`badge ${
+            isPending ? 'pending' :
+            report.status === 'approved' ? 'approved' : 'rejected'
+          }`}>
+            {isPending ? 'Очікує' :
+             report.status === 'approved' ? 'Підтверджено' : 'Без порушень'}
+          </span>
+          <div className="meta">
+            <span>Дата: {new Date(report.created_at).toLocaleDateString('uk-UA')}</span>
+            <span>Збір: #{report.fundraiser}</span>
+            <span>Причина: {report.reason}</span>
+          </div>
+        </div>
+
+        {isExpanded && (
+          <div className="card-details">
+            {report.resolution_note && !isPending && (
+              <div className="resolution-note">
+                <h4>Коментар модератора:</h4>
+                <p>{report.resolution_note}</p>
+              </div>
+            )}
+
+            <div className="actions">
+              {isPending ? (
+                <>
+                  <textarea
+                    value={resolutionNote}
+                    onChange={(e) => setResolutionNote(e.target.value)}
+                    placeholder="Коментар модератора..."
+                    rows="3"
+                  />
+                  <div className="buttons">
+                    <button onClick={() => viewCampaignDetails(report.fundraiser)}>
+                      <i className="icon-eye"></i> Переглянути збір
+                    </button>
+                    <button
+                      className="approve"
+                      onClick={() => handleAction(report, 'approve')}
+                      disabled={loading}
+                    >
+                      <i className="icon-check"></i> Підтверджені порушення
+                    </button>
+                    <button
+                      className="reject"
+                      onClick={() => handleAction(report, 'reject')}
+                      disabled={loading}
+                    >
+                      <i className="icon-x"></i> Відхилені (без порушень)
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="resolution-info">
+                  <p><strong>Статус:</strong> {report.status === 'approved' ? 'Підтверджено' : 'Без порушень'}</p>
+                  <p><strong>Дата обробки:</strong> {new Date(report.processed_at).toLocaleDateString('uk-UA')}</p>
+                  {report.resolution_note && (
+                    <p><strong>Коментар:</strong> {report.resolution_note}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const getActiveData = () => {
+    switch (selectedTab) {
+      case 'pending': 
+        return reportsData.pending;
+      case 'approved':
+        return reportsData.recently_processed.filter(r => r.status === 'approved');
+      case 'rejected':
+        return reportsData.recently_processed.filter(r => r.status === 'rejected');
+      case 'campaigns':
+        return campaignsData;
+      case 'under_review': 
+        return campaignsData.filter(campaign => campaign.status === 'pending');
+      default: 
+        return [];
+    }
+  };
+  
+
+  return (
+    <div className="moderation-panel">
+      <h1>Панель модератора</h1>
+
+      <div className="tabs">
+        <button
+          className={selectedTab === 'pending' ? 'active' : ''}
+          onClick={() => handleTabChange('pending')}
+        >
+          <i className="icon-clock"></i> Скарги на модерації <span>{stats.pending}</span>
+        </button>
+        <button
+          className={selectedTab === 'approved' ? 'active' : ''}
+          onClick={() => handleTabChange('approved')}
+        >
+          <i className="icon-check-circle"></i> Підтверджені скарги <span>{stats.approved}</span>
+        </button>
+        <button
+          className={selectedTab === 'rejected' ? 'active' : ''}
+          onClick={() => handleTabChange('rejected')}
+        >
+          <i className="icon-x-circle"></i> Без порушень <span>{stats.rejected}</span>
+        </button>
+        <button
+          className={selectedTab === 'under_review' ? 'active' : ''}
+          onClick={() => handleTabChange('under_review')}
+        >
+          <i className="icon-file-text"></i> Збори на розгляді <span>{stats.pendingCampaigns}</span>
+        </button>
+      </div>
+
+      {loading && (
+        <div className="loading">
+          <div className="spinner"></div>
+          <p>Завантаження даних...</p>
+        </div>
+      )}
+      {error && <div className="error">{error}</div>}
+
+      <div className="content">
+        {getActiveData().length > 0 ? (
+          selectedTab === 'pending' || selectedTab === 'approved' || selectedTab === 'rejected'
+            ? getActiveData().map(renderReportCard)
+            : getActiveData().map(renderCampaignCard)
+        ) : (
+          <div className="empty">
+            <i className="icon-inbox"></i>
+            <p>Немає елементів для перегляду</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ModerationPanel;

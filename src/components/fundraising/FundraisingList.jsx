@@ -1,70 +1,104 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router-dom";
 import FundraisingCard from "./FundraisingCard";
 import "./FundraisingList.css";
 
 const FundraisingList = () => {
     const [searchParams] = useSearchParams();
+    const location = useLocation();
     const [fundraisingData, setFundraisingData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [ignoreFilters, setIgnoreFilters] = useState(false);
 
-    const category = searchParams.get("category") || "";
-    const location = searchParams.get("location") || "";
-    const helpType = searchParams.get("helpType") || "";
-    const urgency = searchParams.get("urgency") || "";
+    const fetchFundraisers = async () => {
+        setLoading(true);
+        try {
+            let params = {};
+            
+            // Only apply filters if we're not ignoring them
+            if (!ignoreFilters) {
+                const pathParts = location.pathname.split('/');
+                const categoryFromPath = searchParams.get("category") ? '' 
+                    : (pathParts.length > 2 && pathParts[2] ? pathParts[2] : '');
+                
+                if (searchParams.get("category") || categoryFromPath) {
+                    params.category = searchParams.get("category") || categoryFromPath;
+                }
+                
+                if (searchParams.get("city")) {
+                    params.location = searchParams.get("city");
+                }
+                
+                if (searchParams.get("status")) {
+                    // Змінено з help_type на status
+                    params.status = searchParams.get("status");
+                }
+                
+                if (searchParams.get("urgency")) {
+                    params.urgency = searchParams.get("urgency");
+                }
+            }
+            
+            console.log("Fetching with params:", params);
+            console.log("Ignore filters:", ignoreFilters);
 
-    // Додавання консолей для відлагодження
-    console.log("Фільтри:", { category, location, helpType, urgency });
+            // Add a timestamp to prevent caching
+            params._t = new Date().getTime();
+            
+            const response = await axios.get("http://127.0.0.1:8000/api/fundraisers/", { params });
+            setFundraisingData(response.data.results || response.data);
+            setLoading(false);
+        } catch (err) {
+            console.error("Error fetching fundraisers:", err);
+            setError("Не вдалося завантажити збори. Спробуйте ще раз.");
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchFundraisers = async () => {
-            setLoading(true);
-            try {
-                const params = {
-                    category,
-                    location,
-                    help_type: helpType,
-                    urgency,
-                };
+        // Reset ignoreFilters when URL changes
+        setIgnoreFilters(false);
+        fetchFundraisers();
 
-                console.log("Запит до API з параметрами:", params); // Додано для налагодження
-                const response = await axios.get("http://127.0.0.1:8000/api/fundraisers/", { params });
-                
-                console.log("Відповідь від API:", response.data); // Додано для налагодження
-                setFundraisingData(response.data.results || response.data); // Перевірте структуру відповіді
-                setLoading(false);
-            } catch (err) {
-                console.error("Помилка при запиті:", err); // Додано для налагодження
-                setError("Не вдалося завантажити збори. Спробуйте ще раз.");
-                setLoading(false);
-            }
+        const handleFundraiserUpdate = () => {
+            fetchFundraisers();
         };
 
-        fetchFundraisers();
-    }, [category, location, helpType, urgency]);
+        const handleFiltersCleared = () => {
+            console.log("Filters cleared event received");
+            setIgnoreFilters(true);
+            fetchFundraisers();
+        };
+
+        window.addEventListener('fundraiserUpdated', handleFundraiserUpdate);
+        window.addEventListener('filtersCleared', handleFiltersCleared);
+        
+        return () => {
+            window.removeEventListener('fundraiserUpdated', handleFundraiserUpdate);
+            window.removeEventListener('filtersCleared', handleFiltersCleared);
+        };
+    }, [searchParams, location.pathname]);
+
+    // Extra effect to refetch when ignoreFilters changes
+    useEffect(() => {
+        if (ignoreFilters) {
+            fetchFundraisers();
+        }
+    }, [ignoreFilters]);
 
     if (loading) return <p>Завантаження зборів...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
-    const filteredData = fundraisingData.filter(item =>
-        (!category || item.category === category) &&
-        (!location || item.location === location) &&
-        (!helpType || (item.donation_link ? "money" : "volunteer") === helpType) &&
-        (!urgency || item.urgency === urgency)
-    );
-
-    console.log("Відфільтровані дані:", filteredData); // Додано для налагодження
-
     return (
         <div>
             <div className="fundraising-header">
-                <h2>Збір коштів</h2>
+                <h2>Збір коштів {ignoreFilters ? '(всі категорії)' : ''}</h2>
             </div>
             <div className="fundraising-list">
-                {filteredData.length > 0 ? (
-                    filteredData.map((item) => (
+                {fundraisingData.length > 0 ? (
+                    fundraisingData.map((item) => (
                         <FundraisingCard
                             key={item.id}
                             id={item.id}
@@ -73,6 +107,14 @@ const FundraisingList = () => {
                             description={item.description}
                             image={item.image}
                             donationLink={item.donation_link}
+                            currentAmount={item.current_amount}
+                            goalAmount={item.goal_amount}
+                            status={item.status}
+                            createdAt={item.created_at}
+                            creator={item.creator}
+                            location={item.location}
+                            urgency={item.urgency}
+                            showFullInfo={true}
                         />
                     ))
                 ) : (

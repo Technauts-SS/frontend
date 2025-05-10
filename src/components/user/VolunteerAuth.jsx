@@ -1,53 +1,89 @@
 import React, { useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Navigate } from 'react-router-dom'; // Додано Navigate
+import { useAuth } from '../../context/AuthContext';
+import api from '../../api';
 import './VolunteerAuth.css';
 
 const VolunteerAuth = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, login } = useAuth(); // Додано login
   const isLogin = location.pathname === '/login';
 
+  if (isAuthenticated) {
+    if (user?.role === 'admin') {
+      return <Navigate to="/admin" />;
+    } else if (user?.role === 'moderator') {
+      return <Navigate to="/moderation" />;
+    }
+    return <Navigate to="/profile" />;
+  }
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     fullName: '',
     phone: '',
-    interests: []
+    profileImage: null
   });
 
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [backendError, setBackendError] = useState('');
+  const [imagePreview, setImagePreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-
+    
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    
+    if (backendError) setBackendError('');
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, profileImage: file }));
+      
+      // Створення попереднього перегляду зображення
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
+    
+    if (!formData.email) {
+      newErrors.email = "Email обов'язковий";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Невірний формат email";
+    }
 
-    if (!formData.email) newErrors.email = "Email обов'язковий";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Невірний формат email";
-
-    if (!formData.password) newErrors.password = "Пароль обов'язковий";
-    else if (formData.password.length < 6) newErrors.password = "Пароль має бути не менше 6 символів";
+    if (!formData.password) {
+      newErrors.password = "Пароль обов'язковий";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Мінімум 6 символів";
+    }
 
     if (!isLogin) {
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = "Паролі не співпадають";
       }
-
-      if (!formData.fullName) newErrors.fullName = "Ім'я обов'язкове";
-
+      if (!formData.fullName) {
+        newErrors.fullName = "Повне ім'я обов'язкове";
+      }
       if (!formData.phone) {
         newErrors.phone = "Телефон обов'язковий";
       } else if (!/^\+380\d{9}$/.test(formData.phone.replace(/\s/g, ''))) {
-        newErrors.phone = "Телефон має відповідати формату +380 XX XXX XX XX";
+        newErrors.phone = "Формат: +380XXXXXXXXX";
       }
     }
 
@@ -57,32 +93,80 @@ const VolunteerAuth = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setBackendError('');
+    
+    if (!validateForm()) return;
+  
+    setIsSubmitting(true);
+    
+    try {
+      if (isLogin) {
+        await login(formData.email, formData.password);
+        navigate('/profile');
+      } else {
+        const cleanPhone = formData.phone.replace(/\D/g, '');
+        
+        const formDataToSend = new FormData();
+        formDataToSend.append('email', formData.email);
+        formDataToSend.append('password', formData.password);
+        formDataToSend.append('full_name', formData.fullName);
+        formDataToSend.append('phone_number', cleanPhone.length > 0 ? `+${cleanPhone}` : '');
+        
+        if (formData.profileImage) {
+          formDataToSend.append('profile_image', formData.profileImage);
+        }
 
-    if (validateForm()) {
-      setIsSubmitting(true);
-
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log("Form submitted", formData);
-        alert(isLogin ? "Вхід успішний!" : "Реєстрація успішна!");
-      } catch (error) {
-        console.error("Error submitting form:", error);
-        alert("Сталася помилка при обробці запиту");
-      } finally {
-        setIsSubmitting(false);
+        const response = await api.post('/users/', formDataToSend, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        alert('Реєстрація успішна! Тепер увійдіть у систему.');
+        navigate('/login');
       }
+    } catch (error) {
+      console.error('Request failed:', error);
+      
+      if (error.response) {
+        if (error.response.status === 400) {
+          const errors = error.response.data;
+          let errorMsg = '';
+          
+          if (errors.email) errorMsg += `Email: ${errors.email.join(' ')}\n`;
+          if (errors.password) errorMsg += `Пароль: ${errors.password.join(' ')}\n`;
+          if (errors.phone_number) errorMsg += `Телефон: ${errors.phone_number.join(' ')}\n`;
+          if (errors.profile_image) errorMsg += `Фото: ${errors.profile_image.join(' ')}\n`;
+          
+          setBackendError(errorMsg || 'Невірні дані реєстрації');
+        } else {
+          setBackendError(`Помилка сервера: ${error.response.status}`);
+        }
+      } else {
+        setBackendError('Помилка з\'єднання з сервером');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center text-green-600">
-          {isLogin ? 'Увійти на платформу' : 'Зареєструватися як волонтер'}
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2 className="auth-title">
+          {isLogin ? 'Увійти в систему' : 'Реєстрація волонтера'}
         </h2>
+        
+        {backendError && (
+          <div className="backend-error">
+            {backendError.split('\n').map((line, i) => (
+              <div key={i}>{line}</div>
+            ))}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+          <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
               type="email"
@@ -90,53 +174,46 @@ const VolunteerAuth = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={errors.email ? 'error' : ''}
-              placeholder="your@email.com"
+              className={errors.email ? 'input-error' : ''}
+              placeholder="your@example.com"
               disabled={isSubmitting}
             />
-            {errors.email && <p className="error-message">{errors.email}</p>}
+            {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
-          <div className="mb-4">
+          <div className="form-group">
             <label htmlFor="password">Пароль</label>
-            <div className="password-container">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={errors.password ? 'error' : ''}
-                disabled={isSubmitting}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="password-toggle"
-              >
-                {showPassword ? '🙈' : '👁️'}
-              </button>
-            </div>
-            {errors.password && <p className="error-message">{errors.password}</p>}
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className={errors.password ? 'input-error' : ''}
+              placeholder="************"
+              disabled={isSubmitting}
+            />
+            {errors.password && <span className="error-message">{errors.password}</span>}
           </div>
 
           {!isLogin && (
             <>
-              <div className="mb-4">
+              <div className="form-group">
                 <label htmlFor="confirmPassword">Підтвердіть пароль</label>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type="password"
                   id="confirmPassword"
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={errors.confirmPassword ? 'error' : ''}
+                  className={errors.confirmPassword ? 'input-error' : ''}
+                  placeholder="************"
                   disabled={isSubmitting}
                 />
-                {errors.confirmPassword && <p className="error-message">{errors.confirmPassword}</p>}
+                {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
               </div>
 
-              <div className="mb-4">
+              <div className="form-group">
                 <label htmlFor="fullName">Повне ім'я</label>
                 <input
                   type="text"
@@ -144,13 +221,14 @@ const VolunteerAuth = () => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className={errors.fullName ? 'error' : ''}
+                  className={errors.fullName ? 'input-error' : ''}
+                  placeholder="Введіть ваше повне ім'я"
                   disabled={isSubmitting}
                 />
-                {errors.fullName && <p className="error-message">{errors.fullName}</p>}
+                {errors.fullName && <span className="error-message">{errors.fullName}</span>}
               </div>
 
-              <div className="mb-4">
+              <div className="form-group">
                 <label htmlFor="phone">Телефон</label>
                 <input
                   type="tel"
@@ -158,25 +236,59 @@ const VolunteerAuth = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className={errors.phone ? 'error' : ''}
-                  placeholder="+380 XX XXX XX XX"
+                  className={errors.phone ? 'input-error' : ''}
+                  placeholder="+380XXXXXXXXX"
                   disabled={isSubmitting}
                 />
-                {errors.phone && <p className="error-message">{errors.phone}</p>}
+                {errors.phone && <span className="error-message">{errors.phone}</span>}
               </div>
+
+              <div className="form-group">
+  <label htmlFor="profileImage" className="file-upload-group" onClick={() => document.getElementById('profileImage').click()}>
+  <svg class="picture-icon" xmlns="http://www.w3.org/2000/svg" id="Layer_1" data-name="Layer 1" viewBox="0 0 24 24">
+  <path d="m12,21c0,.553-.448,1-1,1h-6c-2.757,0-5-2.243-5-5V5C0,2.243,2.243,0,5,0h12c2.757,0,5,2.243,5,5v6c0,.553-.448,1-1,1s-1-.447-1-1v-6c0-1.654-1.346-3-3-3H5c-1.654,0-3,1.346-3,3v6.959l2.808-2.808c1.532-1.533,4.025-1.533,5.558,0l5.341,5.341c.391.391.391,1.023,0,1.414-.195.195-.451.293-.707.293s-.512-.098-.707-.293l-5.341-5.341c-.752-.751-1.976-.752-2.73,0l-4.222,4.222v2.213c0,1.654,1.346,3,3,3h6c.552,0,1,.447,1,1ZM15,3.5c1.654,0,3,1.346,3,3s-1.346,3-3,3-3-1.346-3-3,1.346-3,3-3Zm0,2c-.551,0-1,.448-1,1s.449,1,1,1,1-.448,1-1-.449-1-1-1Zm8,12.5h-3v-3c0-.553-.448-1-1-1s-1,.447-1,1v3h-3c-.552,0-1,.447-1,1s.448,1,1,1h3v3c0,.553.448,1,1,1s1-.447,1-1v-3h3c.552,0,1-.447,1-1s-.448-1-1-1Z"/>
+</svg>
+    <span className="file-upload-title">Завантажити зображення</span>
+    <span className="file-format-info">JPG, PNG (макс. 10MB)</span>
+    {formData.profileImage && (
+      <span className="file-upload-text">
+        {formData.profileImage.name}
+      </span>
+    )}
+    <input
+      type="file"
+      id="profileImage"
+      name="profileImage"
+      onChange={handleFileChange}
+      accept="image/*"
+      disabled={isSubmitting}
+      className="file-upload-input"
+    />
+    {imagePreview && (
+      <div className="image-preview-container">
+        <img 
+          src={imagePreview} 
+          alt="Попередній перегляд" 
+          className="image-preview"
+        />
+      </div>
+    )}
+  </label>
+</div>
             </>
           )}
 
-          <button type="submit" className={isSubmitting ? 'loading' : ''} disabled={isSubmitting}>
-            {isSubmitting ? 'Завантаження...' : isLogin ? 'Увійти' : 'Зареєструватися'}
+          <button 
+            type="submit" 
+            className="submit-button" 
+            disabled={isSubmitting}
+          >
+            {isLogin ? (
+              isSubmitting ? 'Вхід...' : 'Увійти'
+            ) : (
+              isSubmitting ? 'Реєстрація...' : 'Зареєструватися'
+            )}
           </button>
-
-          <div className="auth-link">
-            <p>
-              {isLogin ? 'Ще не маєте акаунта? ' : 'Вже маєте акаунт? '}
-              <Link to={isLogin ? '/register' : '/login'}>{isLogin ? 'Зареєструватися' : 'Увійти'}</Link>
-            </p>
-          </div>
         </form>
       </div>
     </div>
